@@ -1,18 +1,9 @@
-import "reflect-metadata";
 import { Mongoose, SchemaDefinition } from "mongoose";
 import extendMongooose from "mongoose-schema-jsonschema";
 import { v4 } from "uuid";
+import * as esprima from "esprima";
+import { ExpressionStatement, ArrowFunctionExpression, MemberExpression, Expression, Identifier, ReturnStatement } from "estree";
 const mongoose = extendMongooose(require("mongoose")) as Mongoose;
-
-let model;
-
-export function schema(target: any, key: string) {
-  const t = Reflect.getMetadata("design:type", target, key);
-  console.log(`${key} type: ${t.name}`, t, {
-    t, target, key,
-    tn: t.name,
-  });
-}
 
 export class Model {
   public propA: string;
@@ -26,38 +17,72 @@ export class Model2 {
 }
 
 export class Schema<T> {
-  private obj: T;
-
-  constructor(private ctor: new () => T) {
-    this.obj = new this.ctor();
-    this.stuffObject();
-  }
 
   private _map: Prop[] = [];
 
-  // with<T2>(selector: (model: T) => string, val?: RegExp | string): Schema<T>;
-  with<T2>(selector: (model: T) => T2, value?: T2 | RegExp): Schema<T> {
-    const prop = selector(this.obj) as unknown as Prop;
+  private compileMemberExpression(expression: MemberExpression): string {
+    let str = "", nextObj: MemberExpression;
+    nextObj = expression;
+    while (nextObj) {
+      str = `${(nextObj.property as Identifier).name}${str ? "." : ""}${str}`;
+      nextObj = nextObj.object.type === "MemberExpression" ? nextObj.object as MemberExpression : null;
+    }
 
+    return str;
+  }
+
+  private compileExpression(selector: (model: any) => any) {
+
+    const expression = esprima.parseModule(selector.toString());
+    const es = expression.body[0] as ExpressionStatement;
+    const afe = es.expression as ArrowFunctionExpression;
+    let memberExpr: MemberExpression;
+    if (afe.body.type === "BlockStatement" && afe.body.body[0].type === "ReturnStatement") {
+      memberExpr = (afe.body.body[0] as ReturnStatement).argument as MemberExpression;
+    } else if (afe.body.type === "MemberExpression") {
+      memberExpr = afe.body;
+    }
+    return this.compileMemberExpression(memberExpr);
+  }
+
+  private getType(value: any): Function {
+    if (value instanceof RegExp) return String;
+
+    return value.constructor;
+  }
+
+  with(selector: (model: T) => string, value: string | RegExp): Schema<T>;
+  with(selector: (model: T) => number, value: number): Schema<T>;
+  with(selector: any, value: any): any {
+
+    const path = this.compileExpression(selector);
     this._map.push({
-      ...this.findInStuffing(prop.path), // map from stuffing
-      value,
+      path,
+      type: this.getType(value),
+      valueType: value.constructor,
+      value
     } as Prop);
 
     return this;
   }
 
   public build(): Object {
+    const definition: SchemaDefinition = {
+    };
 
-    const definition: SchemaDefinition = {};
-    console.log("obj", this.o);
+    console.log("this._map", this._map);
+
     this._map.forEach(prop => {
-      definition[prop.name] = { type: prop.type, required: true };
+      definition[prop.path] = {
+        type: prop.type,
+        required: true,
+        match: prop.valueType === RegExp ? prop.value : undefined
+      };
     });
 
     const schema = new mongoose.Schema(definition);
 
-    model = model || mongoose.model(`${this.ctor.name}-${v4()}`, schema);
+    const model = mongoose.model(v4().split("-")[0], schema);
     const json = (model as any).jsonSchema();
     delete json.properties._id;
     delete json.properties.__v;
@@ -67,97 +92,6 @@ export class Schema<T> {
     return json;
   }
 
-  private rand(type: Function) {
-    switch (type) {
-      case String:
-        return "String-" + v4();
-      case Boolean:
-        return "Boolean-" + v4();
-      case Number:
-        return "Number-" + v4();
-      case Date:
-        return "Date-" + v4();
-      default:
-        return false;
-    }
-  }
-
-  // private findInStuffing(val: string): Prop {
-  //   for (const property of TypeDefinition.getMap(this.ctor)) {
-  //     const name = property[0];
-  //     const prop = this.getObj(this.obj, name)[this.getProp(name)] as Prop;
-  //     if (prop.path === val) return prop;
-  //   }
-
-  //   throw new Error(`Property with value "${val}" could not be found. Make it is passed in propertyMap or decorated with @schema attribute`);
-  // }
-
-
-
-  private findInStuffing(value: string): Prop {
-
-    const findInStuffingInner = (obj: any, value: string, map: TypeMap): Prop => {
-      if (!map) return;
-      for (const val of map) {
-        const name = val[0];
-        const type = val[1];
-        if (obj[name].path === value) return obj[name] as Prop;
-        if (typeof (obj[name].path) !== "string") {
-          const result = findInStuffingInner(obj[name], value, TypeDefinition.getMap(type));
-          if (result && result.path === value) return result;
-        }
-      }
-    };
-
-    const result = findInStuffingInner(this.obj, value, TypeDefinition.getMap(this.ctor));
-    if (result) return result;
-
-    throw new Error(`Property with value "${value}" could not be found. Make it is passed in propertyMap or decorated with @schema attribute`);
-  }
-
-  private stuffObject() {
-
-    const stuffObjectInner = (obj: any, map: TypeMap) => {
-
-      map.forEach(val => {
-        const name = val[0];
-        const type = val[1];
-        const path = this.rand(type);
-        obj[name] = path ? {
-          name, type, path: this.rand(type)
-        } : stuffObjectInner({}, TypeDefinition.getMap(type));
-      });
-
-      return obj;
-    };
-
-    stuffObjectInner(this.obj, TypeDefinition.getMap(this.ctor));
-  }
 }
 
-type TypeMap = [string, Function][];
-type Prop = { name: string, type: Function, path: string, value: any };
-
-export class TypeDefinition {
-  private static typeMap = new WeakMap<Function, TypeMap>();
-
-  private constructor(private ctor: Function) { }
-
-  public static for(ctor: Function) {
-    return new TypeDefinition(ctor);
-  }
-
-  public static getMap(ctor: Function) {
-    return TypeDefinition.typeMap.get(ctor);
-  }
-
-  public add(prop: string, type: Function) {
-    if (!TypeDefinition.typeMap.has(this.ctor)) {
-      TypeDefinition.typeMap.set(this.ctor, []);
-    }
-    const map = TypeDefinition.typeMap.get(this.ctor);
-    map.push([prop, type]);
-
-    return this;
-  }
-}
+type Prop = { path: string, type: Function, valueType: Function, value: any };
