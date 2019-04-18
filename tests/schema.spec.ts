@@ -3,51 +3,234 @@ import { describe, it } from "mocha";
 import { should } from "chai";
 should();
 
-import { Schema, Model, Model2 } from "../src/schema";
+import { Schema } from "../src/schema";
+import { testCase } from "./test-case";
 
+export class Model {
+  public propA?: string;
+  public propB?: number;
+  public propC?: boolean;
+  public propD?: Date;
+  public propE?: Model2;
+}
 
-describe("Schema", function () {
-  it("should pass", function () {
+export class Model2 {
+  public propF?: string;
+}
 
-    const model = {
-      propA: "sergej.popov",
-      propB: 5,
-      propD: {
-        propF: "abc"
-      } as Model2
-    } as Model;
+describe("Exact string validation", function () {
 
-    const j = new Schema<Model>();
-    j.with(m => m.propA, /^[a-zA-Z]+\.[a-zA-Z]+$/);
-    j.with(m => m.propD.propF, "abc");
-    j.with(m => m.propB, 10);
-    const jsonSchema = j.build();
+  it("Should pass when string matches exactly ", function () {
 
-    const ajv = new Ajv();
-    const validate = ajv.compile(jsonSchema);
-    const valid = validate(model);
+    const model: Model = {
+      propA: "sergej.popov"
+    };
 
-    console.log("ASSERT", { valid, model, err: validate.errors });
+    const schema = new Schema<Model>()
+      .with(m => m.propA, "sergej.popov")
+      .build();
 
-    valid.should.be.eql(true, JSON.stringify(validate.errors));
+    const validator = new Ajv().compile(schema);
+    const isValid = validator(model);
+
+    isValid.should.be.eql(true);
   });
 
-  it("should fail", function () {
+  it("Should fail when string doesn't match exactly", function () {
 
-    const model = {
-      propD: {
-        propF: null
-      } as Model2
-    } as Model;
+    const model: Model = {
+      propA: "sergej.popov"
+    };
 
-    const j = new Schema<Model>();
-    j.with(m => { return m.propD.propF; }, "abc");
-    const jsonSchema = j.build();
+    const schema = new Schema<Model>()
+      .with(m => m.propA, "popov.sergej")
+      .build();
 
-    const ajv = new Ajv();
-    const validate = ajv.compile(jsonSchema);
-    const valid = validate(model);
+    const validator = new Ajv().compile(schema);
+    const isValid = validator(model);
 
-    valid.should.be.eql(false, "Because model is invalid");
+    isValid.should.be.eql(false);
   });
+
+});
+
+describe("RegEx validation", function () {
+  it("Should pass when string matches RegEx", function () {
+
+    const model: Model = {
+      propA: "sergej.popov"
+    };
+
+    const schema = new Schema<Model>()
+      .with(m => m.propA, /^[a-zA-Z]+\.[a-zA-Z]+$/)
+      .build();
+
+    const validator = new Ajv().compile(schema);
+    const isValid = validator(model);
+
+    isValid.should.be.eql(true);
+  });
+
+  it("Should fail when string doesn't match RegEx", function () {
+
+    const model: Model = {
+      propA: "notvalidname"
+    };
+
+    const schema = new Schema<Model>()
+      .with(m => m.propA, /^[a-zA-Z]+\.[a-zA-Z]+$/)
+      .build();
+
+    const validator = new Ajv().compile(schema);
+    const isValid = validator(model);
+
+    isValid.should.be.eql(false);
+  });
+
+
+});
+
+describe("Exact number validation", function () {
+
+  it("Should pass when number matches exactly ", function () {
+
+    const model: Model = {
+      propB: 10
+    };
+
+    const schema = new Schema<Model>()
+      .with(m => m.propB, 10)
+      .build();
+
+    const validator = new Ajv().compile(schema);
+    const isValid = validator(model);
+
+    isValid.should.be.eql(true);
+  });
+
+  it("Should fail when number is smaller than expected", function () {
+
+    const model: Model = {
+      propB: 10
+    };
+
+    const schema = new Schema<Model>()
+      .with(m => m.propB, 20)
+      .build();
+
+    const validator = new Ajv().compile(schema);
+    const isValid = validator(model);
+
+    isValid.should.be.eql(false);
+  });
+
+  it("Should fail when number is greater than expected", function () {
+
+    const model: Model = {
+      propB: 30
+    };
+
+    const schema = new Schema<Model>()
+      .with(m => m.propB, 20)
+      .build();
+
+    const validator = new Ajv().compile(schema);
+    const isValid = validator(model);
+
+    isValid.should.be.eql(false);
+  });
+
+});
+
+
+describe.only("Exact Date validation", function () {
+
+  it.only("Should pass when Date matches exactly ", function () {
+
+    const model: Model = {
+      propD: new Date("2018-01-01T12:00:00")
+    };
+
+    const schema = new Schema<Model>()
+      .with(m => m.propD, new Date("2018-01-01T12:00:00"))
+      .build();
+
+    const ajv = new Ajv({schemaId: 'id'});
+    ajv.addMetaSchema(require("ajv/lib/refs/json-schema-draft-04.json"));
+    const validator = ajv.compile(schema);
+    const isValid = validator(model);
+
+    isValid.should.be.eql(true);
+  });
+
+  it("Should fail when number is earlier than expected", function () {
+
+    const model: Model = {
+      propD: new Date("2017-01-01T12:00:00")
+    };
+
+    const schema = new Schema<Model>()
+      .with(m => m.propD, new Date("2018-01-01T12:00:00"))
+      .build();
+
+    const validator = new Ajv().compile(schema);
+    const isValid = validator(model);
+
+    isValid.should.be.eql(false);
+  });
+
+  it("Should fail when number is later than expected", function () {
+
+    const model: Model = {
+      propD: new Date("2019-01-01T12:00:00")
+    };
+
+    const schema = new Schema<Model>()
+      .with(m => m.propD, new Date("2018-01-01T12:00:00"))
+      .build();
+
+    const validator = new Ajv().compile(schema);
+    const isValid = validator(model);
+
+    isValid.should.be.eql(false);
+  });
+
+});
+
+
+describe("Expression number validation", function () {
+
+  testCase(
+    [
+      { propValue: 10, exression: (x: number) => x == 10, expected: true, reason: "eq" },
+      { propValue: 10, exression: (x: number) => x === 10, expected: true, reason: "eq" },
+      { propValue: 10, exression: (x: number) => x == 9, expected: false, reason: "eq" },
+      { propValue: 10, exression: (x: number) => x === 9, expected: false, reason: "eq" },
+      { propValue: 10, exression: (x: number) => x == 11, expected: false, reason: "eq" },
+      { propValue: 10, exression: (x: number) => x === 11, expected: false, reason: "eq" },
+      { propValue: 10, exression: (x: number) => x < 11, expected: true, reason: "lt" },
+      { propValue: 10, exression: (x: number) => x < 10, expected: false, reason: "lt" },
+      { propValue: 10, exression: (x: number) => x <= 10, expected: true, reason: "lte" },
+      { propValue: 10, exression: (x: number) => x <= 9, expected: false, reason: "lte" },
+      { propValue: 10, exression: (x: number) => x > 9, expected: true, reason: "gt" },
+      { propValue: 10, exression: (x: number) => x > 10, expected: false, reason: "gt" },
+      { propValue: 10, exression: (x: number) => x >= 10, expected: true, reason: "gte" },
+      { propValue: 10, exression: (x: number) => x >= 11, expected: false, reason: "gte" },
+    ], c => {
+      it(`Should ${c.expected ? "pass" : "fail"} when number matches ${c.reason} expression`, function () {
+
+        const model: Model = {
+          propB: c.propValue
+        };
+
+        const schema = new Schema<Model>()
+          .with(m => m.propB, c.exression)
+          .build();
+
+        const validator = new Ajv().compile(schema);
+        const isValid = validator(model);
+
+        isValid.should.be.eql(c.expected);
+      });
+    });
 });
