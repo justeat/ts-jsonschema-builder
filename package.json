@@ -11,22 +11,18 @@
   "author": "",
   "license": "UNLICENSED",
   "dependencies": {
-    "@types/node": "^11.11.6",
+    "@types/node": "^11.13.7",
+    "escape-string-regexp": "^2.0.0",
     "esprima": "^4.0.1",
-    "json-schema-builder": "0.0.5",
-    "jsonschema-builder": "^1.1.4",
-    "mongoose": "^5.4.19",
-    "mongoose-schema-jsonschema": "^1.2.1",
-    "typescript": "^3.3.4000",
+    "typescript": "^3.4.4",
     "uuid": "^3.3.2"
   },
   "devDependencies": {
     "@justeat/ancillaryrevenue-tslint-config": "^1.0.4",
-    "@types/ajv": "^1.0.0",
     "@types/chai": "^4.1.7",
+    "@types/escape-string-regexp": "^2.0.1",
     "@types/esprima": "^4.0.2",
     "@types/mocha": "^5.2.6",
-    "@types/mongoose": "^5.3.23",
     "@types/reflect-metadata": "^0.1.0",
     "@types/uuid": "^3.4.4",
     "ajv": "^6.10.0",
@@ -34,6 +30,6 @@
     "mocha": "^6.0.2",
     "reflect-metadata": "^0.1.13",
     "ts-mocha": "^6.0.0",
-    "tslint": "^5.14.0"
+    "tslint": "^5.16.0"
   }
 }
