@@ -23,6 +23,39 @@ export class Model3 {
   public Lvl3StrProp?: string;
 }
 
+describe("Usage", function () {
+
+  it("Complete picture", function () {
+
+    const model: Model = {
+      StringProp: "sergej.popov",
+      NumProp: 10,
+      BoolProp: false,
+      ArrayProp: [1, 2, 3],
+      DateProp: new Date("2018-01-01T12:00:00").toISOString() as any,
+      ObjProp: {
+        Lvl2ObjProp: {
+          Lvl3StrProp: "aaa.bbb"
+        }
+      }
+    };
+
+
+    const schema = new SchemaV2<Model>()
+      .with(m => m.StringProp, /^[a-zA-Z]+\.[a-zA-Z]+$/)
+      .with(m => m.NumProp, x => x >= 10)
+      .with(m => m.BoolProp, false)
+      .with(m => m.ArrayProp, x => x.length >= 3, ArrayOptions.UniqueItems)
+      .with(m => m.DateProp, new Date("2018-01-01T12:00:00"))
+      .with(m => m.ObjProp.Lvl2ObjProp.Lvl3StrProp, /^[a-zA-Z]+\.[a-zA-Z]+$/)
+      .build();
+
+    const validator = new Ajv().compile(schema);
+    const isValid = validator(model);
+
+    isValid.should.be.eql(true, JSON.stringify(validator.errors));
+  });
+});
 
 describe("Type safety", function () {
 
@@ -40,7 +73,6 @@ describe("Type safety", function () {
     intersection.should.be.empty;
   });
 });
-
 
 describe("Structural", function () {
 
@@ -62,7 +94,29 @@ describe("Structural", function () {
 
     isValid.should.be.eql(true);
   });
+
+  it("Should require nested object", function () {
+
+    const model: Model = {
+      ObjProp: {
+        Lvl2ObjProp: {
+        }
+      }
+    };
+
+    const schema = new SchemaV2<Model>()
+      .with(m => m.ObjProp.Lvl2ObjProp.Lvl3StrProp, /^[a-zA-Z]+\.[a-zA-Z]+$/)
+      .build();
+
+    const validator = new Ajv().compile(schema);
+    const isValid = validator(model);
+
+    isValid.should.be.eql(false, JSON.stringify(validator.errors));
+  });
 });
+
+
+
 
 describe("Exact string validation", function () {
 
@@ -246,13 +300,45 @@ describe("Exact Date validation", function () {
       .with(m => m.DateProp, new Date("2018-01-01T12:00:00"))
       .build();
 
-    const ajv = new Ajv({ schemaId: 'id' });
-    ajv.addMetaSchema(require("ajv/lib/refs/json-schema-draft-04.json"));
-    const validator = ajv.compile(schema);
-    console.log("VV", JSON.stringify(model))
+    const validator = new Ajv().compile(schema);
     const isValid = validator(model);
 
     isValid.should.be.eql(true, JSON.stringify(validator.errors));
+  });
+});
+
+describe("Exact Bool validation", function () {
+
+  it("Should pass when Bool matches exactly ", function () {
+
+    const model: Model = {
+      BoolProp: false
+    };
+
+    const schema = new SchemaV2<Model>()
+      .with(m => m.BoolProp, false)
+      .build();
+
+    const validator = new Ajv().compile(schema);
+    const isValid = validator(model);
+
+    isValid.should.be.eql(true, JSON.stringify(validator.errors));
+  });
+
+  it("Should fail when Bool doesn't match exactly ", function () {
+
+    const model: Model = {
+      BoolProp: false
+    };
+
+    const schema = new SchemaV2<Model>()
+      .with(m => m.BoolProp, true)
+      .build();
+
+    const validator = new Ajv().compile(schema);
+    const isValid = validator(model);
+
+    isValid.should.be.eql(false, JSON.stringify(validator.errors));
   });
 });
 

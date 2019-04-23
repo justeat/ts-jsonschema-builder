@@ -6,4 +6,4 @@
 
 Limitations:
 * Array - only min/max Items supported
-* Date - only exact supported
+* Date - only exact supported, should probably change to be only a part of string as per spec

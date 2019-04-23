@@ -137,6 +137,7 @@ export class Schema<T> {
     }
     if (typeof value === "string") return { type: "string", pattern: escapeStringRegexp(value) };
     if (typeof value === "number") return { type: "number", minimum: value, maximum: value };
+    if (typeof value === "boolean") return { type: "boolean", enum: [value] };
     if (Array.isArray(value) && value.length === 2 && !isArrayType) return { type: "number", minimum: value[0], maximum: value[1] };
     if (Array.isArray(value) && isArrayType) return { type: "array", uniqueItems: !!(arrayOptions & ArrayOptions.UniqueItems) };
 
@@ -162,6 +163,7 @@ export class Schema<T> {
   with(selector: (model: T) => string, value: (model: string) => boolean): Schema<T>;
   with(selector: (model: T) => number, value: number | [number, number]): Schema<T>;
   with(selector: (model: T) => number, value: (model: number) => boolean): Schema<T>;
+  with(selector: (model: T) => boolean, value: boolean): Schema<T>;
   with(selector: (model: T) => Date, value: Date): Schema<T>;
   with(selector: (model: T) => any[], value: any[], options: ArrayOptions): Schema<T>;
   with(selector: (model: T) => any[], value: (model: any[]) => boolean, options: ArrayOptions): Schema<T>;
@@ -180,17 +182,15 @@ export class Schema<T> {
     invertedExpression[invertedExpression.length - 1].leaf = true;
 
 
-    let $ref = this.schema, $prev, $member;
+    let $ref: any = this.schema, $member;
     for ($member of invertedExpression) {
-      $prev = $ref;
       $ref.properties = $ref.properties || {};
       if ($member.leaf) $ref.properties[$member.title] = this.parse(value, options);
       else $ref.properties[$member.title] = $ref.properties[$member.title] || { title: $member.title, type: "object" }
 
+      $ref.required = $ref.required ? Array.from(new Set([...$ref.required, $member.title])) : [$member.title];
       $ref = $ref.properties[$member.title];
     }
-
-    $prev.required = $prev.required ? Array.from(new Set([...$prev.required, $member.title])) : [$member.title];
 
     return this;
   }
@@ -198,7 +198,6 @@ export class Schema<T> {
   public build(): Object {
 
     console.log({ definition: JSON.stringify(this.schema) });
-
 
     return this.schema;
   }
@@ -210,7 +209,8 @@ export class Schema<T> {
 type PrimitiveSchema =
   { type: "string", pattern?: RegExp | String, format?: String, minLength?: number, maxLength?: number } |
   { type: "array", minItems?: number, maxItems?: number, uniqueItems?: boolean } |
-  { type: "number", minimum?: number, maximum?: number }
+  { type: "number", minimum?: number, maximum?: number } |
+  { type: "boolean", enum: boolean[] }
 
 
 
