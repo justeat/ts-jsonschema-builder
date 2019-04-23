@@ -9,31 +9,6 @@ export class Schema<T> {
     this.schema = { type: "object", properties: {} };
   }
 
-  private compileMemberExpression(expression: MemberExpression): string {
-    let str = "", nextObj: MemberExpression;
-    nextObj = expression;
-    while (nextObj) {
-      str = `${(nextObj.property as Identifier).name}${str ? "." : ""}${str}`;
-      nextObj = nextObj.object.type === "MemberExpression" ? nextObj.object as MemberExpression : null;
-    }
-
-    return str;
-  }
-
-  private compileExpression(selector: (model: any) => any) {
-
-    const expression = esprima.parseModule(selector.toString());
-    const es = expression.body[0] as ExpressionStatement;
-    const afe = es.expression as ArrowFunctionExpression;
-    let memberExpr: MemberExpression;
-    if (afe.body.type === "BlockStatement" && afe.body.body[0].type === "ReturnStatement") {
-      memberExpr = (afe.body.body[0] as ReturnStatement).argument as MemberExpression;
-    } else if (afe.body.type === "MemberExpression") {
-      memberExpr = afe.body;
-    }
-    return this.compileMemberExpression(memberExpr);
-  }
-
   private getMemberExpression(selector: (model: any) => any): MemberExpression {
 
     const expression = esprima.parseModule(selector.toString());
@@ -153,17 +128,17 @@ export class Schema<T> {
     }
   }
 
-
-
-
   private parse(value: any, arrayOptions: ArrayOptions): PrimitiveSchema | null {
+    const isArrayType = typeof arrayOptions !== "undefined";
+
     if (value instanceof RegExp) return { type: "string", pattern: value.source };
     if (value instanceof Date) {
       return { type: "string", format: "date-time", pattern: escapeStringRegexp(value.toISOString()) };
     }
     if (typeof value === "string") return { type: "string", pattern: escapeStringRegexp(value) };
     if (typeof value === "number") return { type: "number", minimum: value, maximum: value };
-    if (Array.isArray(value) && value.length === 2) return { type: "number", minimum: value[0], maximum: value[1] };
+    if (Array.isArray(value) && value.length === 2 && !isArrayType) return { type: "number", minimum: value[0], maximum: value[1] };
+    if (Array.isArray(value) && isArrayType) return { type: "array", uniqueItems: !!(arrayOptions & ArrayOptions.UniqueItems) };
 
     if (value instanceof Function) {
       const expression = esprima.parseModule(value.toString());
@@ -183,13 +158,14 @@ export class Schema<T> {
     throw new Error(`Unsupposrt type. '${value.constructor}'`)
   }
 
-
   with(selector: (model: T) => string, value: string | RegExp): Schema<T>;
   with(selector: (model: T) => string, value: (model: string) => boolean): Schema<T>;
   with(selector: (model: T) => number, value: number | [number, number]): Schema<T>;
   with(selector: (model: T) => number, value: (model: number) => boolean): Schema<T>;
   with(selector: (model: T) => Date, value: Date): Schema<T>;
-  with(selector: (model: T) => Array<any>, value: (model: Array<any>) => boolean, options: ArrayOptions): Schema<T>;
+  with(selector: (model: T) => any[], value: any[], options: ArrayOptions): Schema<T>;
+  with(selector: (model: T) => any[], value: (model: any[]) => boolean, options: ArrayOptions): Schema<T>;
+  // with(selector: (model: T) => Array<any>, value: (model: Array<any>) => boolean, options: ArrayOptions): Schema<T>;
   with(selector: any, value: any, options?: undefined): any {
     const memberExpr = this.getMemberExpression(selector);
 
@@ -233,16 +209,18 @@ export class Schema<T> {
 
 type PrimitiveSchema =
   { type: "string", pattern?: RegExp | String, format?: String, minLength?: number, maxLength?: number } |
-  { type: "array", minItems?: number, maxItems?: number } |
+  { type: "array", minItems?: number, maxItems?: number, uniqueItems?: boolean } |
   { type: "number", minimum?: number, maximum?: number }
 
 
 
+// Options flags must not clash with other Options enums. This is what allows type detection
 export enum ArrayOptions {
   Default = 0,
-  AllowAdditional = 1 << 0,
+  UniqueItems = 1 << 1,
 }
 
 export enum DateOptions {
-  Default = 0
+  Default = 1 << 2,
+  AllowAdditional = 1 << 3,
 }

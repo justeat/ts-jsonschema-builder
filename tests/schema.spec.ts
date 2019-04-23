@@ -3,7 +3,7 @@ import { describe, it } from "mocha";
 import { should } from "chai";
 should();
 
-import { Schema as SchemaV2, ArrayOptions } from "../src/schema";
+import { Schema as SchemaV2, ArrayOptions, DateOptions } from "../src/schema";
 import { testCase } from "./test-case";
 
 export class Model {
@@ -22,6 +22,25 @@ export class Model2 {
 export class Model3 {
   public Lvl3StrProp?: string;
 }
+
+
+describe("Type safety", function () {
+
+  it("Options Enums should not have clashing numbers", function () {
+    // Options enum may mot clash as they help figuring out the type
+
+    const model: Model = {
+      StringProp: "sergej.popov"
+    };
+
+    const arrayEnumNumbers = Object.values(ArrayOptions).filter(Number.isFinite);
+    const dateEnumNumbers = Object.values(DateOptions).filter(Number.isFinite);
+    const intersection = arrayEnumNumbers.filter(x => dateEnumNumbers.includes(x));
+
+    intersection.should.be.empty;
+  });
+});
+
 
 describe("Structural", function () {
 
@@ -241,20 +260,20 @@ describe("Expression string length validation", function () {
 
   testCase(
     [
-      { exression: (x: string) => x.length == 10, expected: true, reason: "eq" },
-      { exression: (x: string) => x.length === 10, expected: true, reason: "eq" },
-      { exression: (x: string) => x.length == 9, expected: false, reason: "eq" },
-      { exression: (x: string) => x.length === 9, expected: false, reason: "eq" },
-      { exression: (x: string) => x.length == 11, expected: false, reason: "eq" },
-      { exression: (x: string) => x.length === 11, expected: false, reason: "eq" },
-      { exression: (x: string) => x.length < 11, expected: true, reason: "lt" },
-      { exression: (x: string) => x.length < 10, expected: false, reason: "lt" },
-      { exression: (x: string) => x.length <= 10, expected: true, reason: "lte" },
-      { exression: (x: string) => x.length <= 9, expected: false, reason: "lte" },
-      { exression: (x: string) => x.length > 9, expected: true, reason: "gt" },
-      { exression: (x: string) => x.length > 10, expected: false, reason: "gt" },
-      { exression: (x: string) => x.length >= 10, expected: true, reason: "gte" },
-      { exression: (x: string) => x.length >= 11, expected: false, reason: "gte" },
+      { expression: (x: string) => x.length == 10, expected: true, reason: "eq" },
+      { expression: (x: string) => x.length === 10, expected: true, reason: "eq" },
+      { expression: (x: string) => x.length == 9, expected: false, reason: "eq" },
+      { expression: (x: string) => x.length === 9, expected: false, reason: "eq" },
+      { expression: (x: string) => x.length == 11, expected: false, reason: "eq" },
+      { expression: (x: string) => x.length === 11, expected: false, reason: "eq" },
+      { expression: (x: string) => x.length < 11, expected: true, reason: "lt" },
+      { expression: (x: string) => x.length < 10, expected: false, reason: "lt" },
+      { expression: (x: string) => x.length <= 10, expected: true, reason: "lte" },
+      { expression: (x: string) => x.length <= 9, expected: false, reason: "lte" },
+      { expression: (x: string) => x.length > 9, expected: true, reason: "gt" },
+      { expression: (x: string) => x.length > 10, expected: false, reason: "gt" },
+      { expression: (x: string) => x.length >= 10, expected: true, reason: "gte" },
+      { expression: (x: string) => x.length >= 11, expected: false, reason: "gte" },
     ], c => {
       it(`Should ${c.expected ? "pass" : "fail"} when number matches ${c.reason} expression`, function () {
 
@@ -263,7 +282,7 @@ describe("Expression string length validation", function () {
         };
 
         const schema = new SchemaV2<Model>()
-          .with(m => m.StringProp, c.exression)
+          .with(m => m.StringProp, c.expression)
           .build();
 
         const validator = new Ajv().compile(schema);
@@ -279,20 +298,20 @@ describe("Expression number validation", function () {
 
   testCase(
     [
-      { exression: (x: number) => x == 10, expected: true, reason: "eq" },
-      { exression: (x: number) => x === 10, expected: true, reason: "eq" },
-      { exression: (x: number) => x == 9, expected: false, reason: "eq" },
-      { exression: (x: number) => x === 9, expected: false, reason: "eq" },
-      { exression: (x: number) => x == 11, expected: false, reason: "eq" },
-      { exression: (x: number) => x === 11, expected: false, reason: "eq" },
-      { exression: (x: number) => x < 11, expected: true, reason: "lt" },
-      { exression: (x: number) => x < 10, expected: false, reason: "lt" },
-      { exression: (x: number) => x <= 10, expected: true, reason: "lte" },
-      { exression: (x: number) => x <= 9, expected: false, reason: "lte" },
-      { exression: (x: number) => x > 9, expected: true, reason: "gt" },
-      { exression: (x: number) => x > 10, expected: false, reason: "gt" },
-      { exression: (x: number) => x >= 10, expected: true, reason: "gte" },
-      { exression: (x: number) => x >= 11, expected: false, reason: "gte" },
+      { expression: (x: number) => x == 10, expected: true, reason: "eq" },
+      { expression: (x: number) => x === 10, expected: true, reason: "eq" },
+      { expression: (x: number) => x == 9, expected: false, reason: "eq" },
+      { expression: (x: number) => x === 9, expected: false, reason: "eq" },
+      { expression: (x: number) => x == 11, expected: false, reason: "eq" },
+      { expression: (x: number) => x === 11, expected: false, reason: "eq" },
+      { expression: (x: number) => x < 11, expected: true, reason: "lt" },
+      { expression: (x: number) => x < 10, expected: false, reason: "lt" },
+      { expression: (x: number) => x <= 10, expected: true, reason: "lte" },
+      { expression: (x: number) => x <= 9, expected: false, reason: "lte" },
+      { expression: (x: number) => x > 9, expected: true, reason: "gt" },
+      { expression: (x: number) => x > 10, expected: false, reason: "gt" },
+      { expression: (x: number) => x >= 10, expected: true, reason: "gte" },
+      { expression: (x: number) => x >= 11, expected: false, reason: "gte" },
     ], c => {
       it(`Should ${c.expected ? "pass" : "fail"} when number matches ${c.reason} expression`, function () {
 
@@ -301,7 +320,7 @@ describe("Expression number validation", function () {
         };
 
         const schema = new SchemaV2<Model>()
-          .with(m => m.NumProp, c.exression)
+          .with(m => m.NumProp, c.expression)
           .build();
 
         const validator = new Ajv().compile(schema);
@@ -316,20 +335,20 @@ describe("Array validation", function () {
 
   testCase(
     [
-      { exression: (x: any[]) => x.length == 10, expected: true, reason: "eq" },
-      { exression: (x: any[]) => x.length === 10, expected: true, reason: "eq" },
-      { exression: (x: any[]) => x.length == 9, expected: false, reason: "eq" },
-      { exression: (x: any[]) => x.length === 9, expected: false, reason: "eq" },
-      { exression: (x: any[]) => x.length == 11, expected: false, reason: "eq" },
-      { exression: (x: any[]) => x.length === 11, expected: false, reason: "eq" },
-      { exression: (x: any[]) => x.length < 11, expected: true, reason: "lt" },
-      { exression: (x: any[]) => x.length < 10, expected: false, reason: "lt" },
-      { exression: (x: any[]) => x.length <= 10, expected: true, reason: "lte" },
-      { exression: (x: any[]) => x.length <= 9, expected: false, reason: "lte" },
-      { exression: (x: any[]) => x.length > 9, expected: true, reason: "gt" },
-      { exression: (x: any[]) => x.length > 10, expected: false, reason: "gt" },
-      { exression: (x: any[]) => x.length >= 10, expected: true, reason: "gte" },
-      { exression: (x: any[]) => x.length >= 11, expected: false, reason: "gte" },
+      { expression: (x: any[]) => x.length == 10, expected: true, reason: "eq" },
+      { expression: (x: any[]) => x.length === 10, expected: true, reason: "eq" },
+      { expression: (x: any[]) => x.length == 9, expected: false, reason: "eq" },
+      { expression: (x: any[]) => x.length === 9, expected: false, reason: "eq" },
+      { expression: (x: any[]) => x.length == 11, expected: false, reason: "eq" },
+      { expression: (x: any[]) => x.length === 11, expected: false, reason: "eq" },
+      { expression: (x: any[]) => x.length < 11, expected: true, reason: "lt" },
+      { expression: (x: any[]) => x.length < 10, expected: false, reason: "lt" },
+      { expression: (x: any[]) => x.length <= 10, expected: true, reason: "lte" },
+      { expression: (x: any[]) => x.length <= 9, expected: false, reason: "lte" },
+      { expression: (x: any[]) => x.length > 9, expected: true, reason: "gt" },
+      { expression: (x: any[]) => x.length > 10, expected: false, reason: "gt" },
+      { expression: (x: any[]) => x.length >= 10, expected: true, reason: "gte" },
+      { expression: (x: any[]) => x.length >= 11, expected: false, reason: "gte" },
     ], c => {
       it(`Should ${c.expected ? "pass" : "fail"} when array length ${c.reason} expression`, function () {
 
@@ -338,7 +357,7 @@ describe("Array validation", function () {
         };
 
         const schema = new SchemaV2<Model>()
-          .with(m => m.ArrayProp, c.exression, ArrayOptions.Default)
+          .with(m => m.ArrayProp, c.expression, ArrayOptions.Default)
           .build();
 
         const validator = new Ajv().compile(schema);
@@ -347,5 +366,38 @@ describe("Array validation", function () {
         isValid.should.be.eql(c.expected);
       });
     });
+
+
+  it("Should allow additional items when default options", function () {
+
+    const model: Model = {
+      ArrayProp: [1, 2, 3, 3]
+    };
+
+    const schema = new SchemaV2<Model>()
+      .with(m => m.ArrayProp, [], ArrayOptions.Default)
+      .build();
+
+    const validator = new Ajv().compile(schema);
+    const isValid = validator(model);
+
+    isValid.should.be.eql(true, JSON.stringify(validator.errors));
+  });
+
+  it("Should not allow additional items when Unique Options", function () {
+
+    const model: Model = {
+      ArrayProp: [1, 2, 3, 3]
+    };
+
+    const schema = new SchemaV2<Model>()
+      .with(m => m.ArrayProp, [], ArrayOptions.UniqueItems)
+      .build();
+
+    const validator = new Ajv().compile(schema);
+    const isValid = validator(model);
+
+    isValid.should.be.eql(false, JSON.stringify(validator.errors));
+  });
 
 });
