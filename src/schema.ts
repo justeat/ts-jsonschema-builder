@@ -64,9 +64,7 @@ export class Schema<T> {
         .expression as ArrowFunctionExpression)
         .body as BinaryExpression;
 
-      if (expr.left.type !== "MemberExpression" ||
-        expr.left.object.type !== "Identifier" ||
-        expr.left.object.name !== "x") return { ok: false };
+      if (expr.left.type !== "Identifier" || expr.left.name !== "x") return { ok: false };
 
       const val = (expr.right as Literal).value as number;
 
@@ -77,10 +75,6 @@ export class Schema<T> {
       if (["==", "===", "<="].includes(expr.operator)) { definition.maxLength = val; }
       if (expr.operator === "<") { definition.maxLength = val - 1; }
       if (expr.operator === ">") { definition.minLength = val + 1; }
-
-      console.log("AS STR", {
-        ex: JSON.stringify(expression)
-      })
 
       return {
         ok: true,
@@ -131,30 +125,76 @@ export class Schema<T> {
     if (typeof value === "string") return { type: "string", pattern: escapeStringRegexp(value) };
     if (typeof value === "number") return { type: "number", minimum: value, maximum: value };
     if (typeof value === "boolean") return { type: "boolean", enum: [value] };
-    if (typeof value === "object" && !Array.isArray(value)) {
-      const customiser = value as ArrayCustomiser; // only array custuomisers supported at the moment
+    if (typeof value === "object" && value.type == "array") {
+      const typeSchema = value as IArraySchema;
 
       const result: PrimitiveSchema = {
         type: "array",
       }
 
       if (typeof value.length !== "undefined") {
-        console.log("UND", { l: value.length, v: value })
         const asArr = this.tryParseAsArray(esprima.parseModule(value.length.toString()));
-        if (!asArr.ok || asArr.definition.type !== "array") throw new Error("Only array customisers supported");
+        if (!asArr.ok || asArr.definition.type !== "array") throw new Error("Only array type schema supported");
 
         if (typeof asArr.definition.maxItems !== "undefined") result.maxItems = asArr.definition.maxItems;
         if (typeof asArr.definition.minItems !== "undefined") result.minItems = asArr.definition.minItems;
         if (typeof asArr.definition.uniqueItems !== "undefined") result.uniqueItems = asArr.definition.uniqueItems;
       }
 
-      if (typeof customiser.maxItems !== "undefined") result.maxItems = customiser.maxItems;
-      if (typeof customiser.minItems !== "undefined") result.minItems = customiser.minItems;
-      if (typeof customiser.uniqueItems !== "undefined") result.uniqueItems = customiser.uniqueItems;
+      if (typeof typeSchema.maxItems !== "undefined") result.maxItems = typeSchema.maxItems;
+      if (typeof typeSchema.minItems !== "undefined") result.minItems = typeSchema.minItems;
+      if (typeof typeSchema.uniqueItems !== "undefined") result.uniqueItems = typeSchema.uniqueItems;
 
       return result;
 
     };
+    if (typeof value === "object" && value.type === "string") {
+      const typeSchema = value as IStringSchema;
+
+      const result: PrimitiveSchema = {
+        type: "string",
+      }
+
+      if (typeof value.length !== "undefined") {
+        const asStr = this.tryParseAsString(esprima.parseModule(value.length.toString()));
+        if (!asStr.ok || asStr.definition.type !== "string") throw new Error("Only array type schema supported");
+
+        if (typeof asStr.definition.format !== "undefined") result.format = asStr.definition.format;
+        if (typeof asStr.definition.maxLength !== "undefined") result.maxLength = asStr.definition.maxLength;
+        if (typeof asStr.definition.minLength !== "undefined") result.minLength = asStr.definition.minLength;
+        if (typeof asStr.definition.pattern !== "undefined") result.pattern = asStr.definition.pattern;
+      }
+
+      if (typeof typeSchema.format !== "undefined") result.format = typeSchema.format;
+      if (typeof typeSchema.maxLength !== "undefined") result.maxLength = typeSchema.maxLength;
+      if (typeof typeSchema.minLength !== "undefined") result.minLength = typeSchema.minLength;
+      if (typeof typeSchema.pattern !== "undefined") result.pattern = typeSchema.pattern;
+
+      return result;
+    }
+    if (typeof value === "object" && value.type === "number") {
+      const typeSchema = value as INumberSchema;
+
+      const result: PrimitiveSchema = {
+        type: "number",
+      }
+
+      if (typeof value.length !== "undefined") {
+        const asNum = this.tryParseAsNumber(esprima.parseModule(value.length.toString()));
+        if (!asNum.ok || asNum.definition.type !== "number") throw new Error("Only array type schema supported");
+
+        if (typeof asNum.definition.multipleOf !== "undefined") result.multipleOf = asNum.definition.multipleOf; //todo: null check helper?
+        if (typeof asNum.definition.minimum !== "undefined") result.minimum = asNum.definition.minimum;
+        if (typeof asNum.definition.maximum !== "undefined") result.maximum = asNum.definition.maximum;
+      }
+
+      if (typeof typeSchema.multipleOf !== "undefined") result.multipleOf = typeSchema.multipleOf;
+      if (typeof typeSchema.minimum !== "undefined") result.minimum = typeSchema.minimum;
+      if (typeof typeSchema.maximum !== "undefined") result.maximum = typeSchema.maximum;
+
+      return result;
+    }
+
     if (Array.isArray(value) && value.length > 0) return {
       type: "array", items: {
         type: typeof value[0],
@@ -172,16 +212,17 @@ export class Schema<T> {
       if (asStr.ok) return asStr.definition;
     }
 
-    throw new Error(`Unsupposrt type. '${value.constructor}'`)
+    throw new Error(`Unsupported type. '${value.constructor}'`)
   }
 
-  with(selector: (model: T) => string, value: (model: string) => boolean): Schema<T>;
-  with(selector: (model: T) => string, value: StringCustomiser): Schema<T>;
+  with(selector: (model: T) => string, value: (model: number) => boolean): Schema<T>;
+  with(selector: (model: T) => string, value: IStringSchema): Schema<T>;
   with(selector: (model: T) => string, value: string | RegExp): Schema<T>;
   with(selector: (model: T) => number, value: number): Schema<T>;
   with(selector: (model: T) => number, value: (model: number) => boolean): Schema<T>;
+  with(selector: (model: T) => number, value: INumberSchema): Schema<T>;
   with(selector: (model: T) => boolean, value: boolean): Schema<T>;
-  with(selector: (model: T) => any[], value: ArrayCustomiser): Schema<T>;
+  with(selector: (model: T) => any[], value: IArraySchema): Schema<T>;
   with(selector: (model: T) => any[], value: any[]): Schema<T>;
   with(selector: any, value: any): any {
     const memberExpr = this.getMemberExpression(selector);
@@ -219,24 +260,80 @@ export class Schema<T> {
 
 }
 
+
+// todo: replace below with interfaces
 type PrimitiveSchema =
   { type: "string", pattern?: RegExp | String, format?: String, minLength?: number, maxLength?: number } |
   { type: "array", minItems?: number, maxItems?: number, uniqueItems?: boolean, items?: { type: string, enum?: any[] } } |
-  { type: "number", minimum?: number, maximum?: number } |
+  { type: "number", multipleOf?: number, minimum?: number, maximum?: number } |
   { type: "boolean", enum: boolean[] }
 
 
 
-export interface ArrayCustomiser {
-  minItems?: number,
-  maxItems?: number,
-  uniqueItems?: boolean,
-  length?: (model: number) => boolean
+export interface ITypeSchema {
+  readonly type: string,
 }
 
-export interface StringCustomiser {
-  format?: "date-time",
-  pattern?: RegExp,
-  minLength?: number,
-  maxLength?: number
+export interface IArraySchema {
+  readonly minItems?: number,
+  readonly maxItems?: number,
+  readonly uniqueItems?: boolean,
+  readonly length?: (model: number) => boolean
+}
+
+export class ArraySchema implements IArraySchema, ITypeSchema {
+  public type: string = "array";
+
+  public readonly minItems?: number;
+  public readonly maxItems?: number;
+  public readonly uniqueItems?: boolean;
+  public readonly length?: (model: number) => boolean;
+
+  constructor(schema: IArraySchema) {
+    Object.assign(this, schema);
+  }
+}
+export interface IStringSchema {
+  readonly format?: "date-time";
+  readonly pattern?: RegExp;
+  readonly minLength?: number;
+  readonly maxLength?: number;
+  readonly length?: (model: number) => boolean;
+}
+
+export class StringSchema implements IStringSchema, ITypeSchema {
+  public readonly type: string = "string";
+
+  public readonly format?: "date-time";
+  public readonly pattern?: RegExp;
+  public readonly minLength?: number;
+  public readonly maxLength?: number;
+  readonly length?: (model: number) => boolean; //todo make sure string expression is not in x => x.length > 1 style - remove .length
+
+  constructor(schema: (model: number) => boolean);
+  constructor(schema: IStringSchema);
+  constructor(schema: any) {
+    if (schema instanceof Function) this.length = schema
+    else Object.assign(this, schema);
+  }
+}
+
+export interface INumberSchema {
+  readonly multipleOf?: number; // todo: test
+  readonly minimum?: number;
+  readonly maximum?: number;
+  readonly value?: (model: number) => boolean;
+}
+
+export class NumberSchema implements INumberSchema, ITypeSchema {
+  public readonly type: string = "number";
+
+  public readonly multipleOf?: number;
+  public readonly minimum?: number;
+  public readonly maximum?: number;
+  readonly value?: (model: number) => boolean;
+
+  constructor(schema: INumberSchema) {
+    Object.assign(this, schema);
+  }
 }

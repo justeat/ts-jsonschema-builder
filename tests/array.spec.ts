@@ -3,18 +3,18 @@ import { should } from "chai";
 
 import { testCase } from "./test-case";
 import { Model } from "./models";
-import { Schema } from "../src/schema";
+import { Schema, ArraySchema } from "../src/schema";
 should();
 
 /**
  * @see https://json-schema.org/understanding-json-schema/reference/array.html
  */
-describe("Array validation", function () {
+describe("Array", function () {
 
     /**
      * @see https://json-schema.org/understanding-json-schema/reference/array.html#length
      */
-    describe("Array length", () => {
+    describe("Length", () => {
         testCase(
             [
                 { expression: (x: number) => x == 10, expected: true, reason: "eq" },
@@ -42,9 +42,9 @@ describe("Array validation", function () {
                     };
 
                     const schema = new Schema<Model>()
-                        .with(m => m.ArrayProp, {
+                        .with(m => m.ArrayProp, new ArraySchema({
                             length: c.expression
-                        })
+                        }))
                         .build();
 
                     const validator = new Ajv().compile(schema);
@@ -67,7 +67,7 @@ describe("Array validation", function () {
             };
 
             const schema = new Schema<Model>()
-                .with(m => m.ArrayProp, {})
+                .with(m => m.ArrayProp, new ArraySchema({}))
                 .build();
 
             const validator = new Ajv().compile(schema);
@@ -83,9 +83,9 @@ describe("Array validation", function () {
             };
 
             const schema = new Schema<Model>()
-                .with(m => m.ArrayProp, {
+                .with(m => m.ArrayProp, new ArraySchema({
                     uniqueItems: false
-                })
+                }))
                 .build();
 
             const validator = new Ajv().compile(schema);
@@ -101,9 +101,9 @@ describe("Array validation", function () {
             };
 
             const schema = new Schema<Model>()
-                .with(m => m.ArrayProp, {
+                .with(m => m.ArrayProp, new ArraySchema({
                     uniqueItems: true
-                })
+                }))
                 .build();
 
             const validator = new Ajv().compile(schema);

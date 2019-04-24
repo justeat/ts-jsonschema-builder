@@ -2,7 +2,7 @@ import Ajv from "ajv";
 import { describe, it } from "mocha";
 import { should } from "chai";
 
-import { Schema} from "../src/schema";
+import { Schema, ArraySchema} from "../src/schema";
 import { Model } from "./models";
 should();
 
@@ -11,7 +11,7 @@ describe("Usage", function () {
   it("Complete picture", function () {
 
     const model: Model = {
-      StringProp: "sergej.popov",
+      StringProp: "abc.def",
       NumProp: 10,
       BoolProp: false,
       ArrayProp: [1, 2, 3],
@@ -26,10 +26,10 @@ describe("Usage", function () {
       .with(m => m.StringProp, /^[a-zA-Z]+\.[a-zA-Z]+$/)
       .with(m => m.NumProp, x => x >= 10)
       .with(m => m.BoolProp, false)
-      .with(m => m.ArrayProp, {
+      .with(m => m.ArrayProp, new ArraySchema({
         length: x => x >= 3,
         uniqueItems: true
-      })
+      }))
       .with(m => m.ObjProp.Lvl2ObjProp.Lvl3StrProp, /^[a-zA-Z]+\.[a-zA-Z]+$/)
       .build();
 
@@ -45,12 +45,12 @@ describe("Structural", function () {
   it("Should not add same field to a required list twice", function () {
 
     const model: Model = {
-      StringProp: "sergej.popov"
+      StringProp: "abc.def"
     };
 
     const schema = new Schema<Model>()
-      .with(m => m.StringProp, "sergej.popov")
-      .with(m => m.StringProp, "sergej.popov")
+      .with(m => m.StringProp, "abc.def")
+      .with(m => m.StringProp, "abc.def")
       .build() as any;
 
     schema.required.length.should.eq(1);
