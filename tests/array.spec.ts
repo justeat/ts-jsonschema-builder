@@ -3,76 +3,136 @@ import { should } from "chai";
 
 import { testCase } from "./test-case";
 import { Model } from "./models";
-import { Schema, ArrayOptions } from "../src/schema";
+import { Schema } from "../src/schema";
 should();
 
+/**
+ * @see https://json-schema.org/understanding-json-schema/reference/array.html
+ */
 describe("Array validation", function () {
 
-    testCase(
-        [
-            { expression: (x: any[]) => x.length == 10, expected: true, reason: "eq" },
-            { expression: (x: any[]) => x.length === 10, expected: true, reason: "eq" },
-            { expression: (x: any[]) => x.length == 9, expected: false, reason: "eq" },
-            { expression: (x: any[]) => x.length === 9, expected: false, reason: "eq" },
-            { expression: (x: any[]) => x.length == 11, expected: false, reason: "eq" },
-            { expression: (x: any[]) => x.length === 11, expected: false, reason: "eq" },
-            { expression: (x: any[]) => x.length < 11, expected: true, reason: "lt" },
-            { expression: (x: any[]) => x.length < 10, expected: false, reason: "lt" },
-            { expression: (x: any[]) => x.length <= 10, expected: true, reason: "lte" },
-            { expression: (x: any[]) => x.length <= 9, expected: false, reason: "lte" },
-            { expression: (x: any[]) => x.length > 9, expected: true, reason: "gt" },
-            { expression: (x: any[]) => x.length > 10, expected: false, reason: "gt" },
-            { expression: (x: any[]) => x.length >= 10, expected: true, reason: "gte" },
-            { expression: (x: any[]) => x.length >= 11, expected: false, reason: "gte" },
-        ], c => {
-            it(`Should ${c.expected ? "pass" : "fail"} when array length ${c.reason} expression`, function () {
+    /**
+     * @see https://json-schema.org/understanding-json-schema/reference/array.html#length
+     */
+    describe("Array length", () => {
+        testCase(
+            [
+                { expression: (x: number) => x == 10, expected: true, reason: "eq" },
+                { expression: (x: number) => x === 10, expected: true, reason: "eq" },
+                { expression: (x: number) => x == 9, expected: false, reason: "eq" },
+                { expression: (x: number) => x === 9, expected: false, reason: "eq" },
+                { expression: (x: number) => x == 11, expected: false, reason: "eq" },
+                { expression: (x: number) => x === 11, expected: false, reason: "eq" },
+                { expression: (x: number) => x < 11, expected: true, reason: "lt" },
+                { expression: (x: number) => x < 10, expected: false, reason: "lt" },
+                { expression: (x: number) => x <= 10, expected: true, reason: "lte" },
+                { expression: (x: number) => x <= 9, expected: false, reason: "lte" },
+                { expression: (x: number) => x > 9, expected: true, reason: "gt" },
+                { expression: (x: number) => x > 10, expected: false, reason: "gt" },
+                { expression: (x: number) => x >= 10, expected: true, reason: "gte" },
+                { expression: (x: number) => x >= 11, expected: false, reason: "gte" },
+            ], c => {
+                /**
+                 * @see https://json-schema.org/understanding-json-schema/reference/array.html#length
+                 */
+                it(`Should ${c.expected ? "pass" : "fail"} when array length ${c.reason} expression`, function () {
 
-                const model: Model = {
-                    ArrayProp: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-                };
+                    const model: Model = {
+                        ArrayProp: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+                    };
 
-                const schema = new Schema<Model>()
-                    .with(m => m.ArrayProp, c.expression, ArrayOptions.Default)
-                    .build();
+                    const schema = new Schema<Model>()
+                        .with(m => m.ArrayProp, {
+                            length: c.expression
+                        })
+                        .build();
 
-                const validator = new Ajv().compile(schema);
-                const isValid = validator(model);
+                    const validator = new Ajv().compile(schema);
+                    const isValid = validator(model);
 
-                isValid.should.be.eql(c.expected);
+                    isValid.should.be.eql(c.expected);
+                });
             });
-        });
-
-
-    it("Should allow additional items when default options", function () {
-
-        const model: Model = {
-            ArrayProp: [1, 2, 3, 3]
-        };
-
-        const schema = new Schema<Model>()
-            .with(m => m.ArrayProp, [], ArrayOptions.Default)
-            .build();
-
-        const validator = new Ajv().compile(schema);
-        const isValid = validator(model);
-
-        isValid.should.be.eql(true, JSON.stringify(validator.errors));
     });
 
-    it("Should not allow additional items when Unique Options", function () {
+    /**
+     * @see https://json-schema.org/understanding-json-schema/reference/array.html#uniqueness
+     */
+    describe("Uniqueness", () => {
 
-        const model: Model = {
-            ArrayProp: [1, 2, 3, 3]
-        };
+        it("Should allow duplicate items when uniqueItems is not specified", function () {
 
-        const schema = new Schema<Model>()
-            .with(m => m.ArrayProp, [], ArrayOptions.UniqueItems)
-            .build();
+            const model: Model = {
+                ArrayProp: [1, 2, 3, 3]
+            };
 
-        const validator = new Ajv().compile(schema);
-        const isValid = validator(model);
+            const schema = new Schema<Model>()
+                .with(m => m.ArrayProp, {})
+                .build();
 
-        isValid.should.be.eql(false, JSON.stringify(validator.errors));
+            const validator = new Ajv().compile(schema);
+            const isValid = validator(model);
+
+            isValid.should.be.eql(true, JSON.stringify(validator.errors));
+        });
+
+        it("Should allow duplicate items when  uniqueItems is true", function () {
+
+            const model: Model = {
+                ArrayProp: [1, 2, 3, 3]
+            };
+
+            const schema = new Schema<Model>()
+                .with(m => m.ArrayProp, {
+                    uniqueItems: false
+                })
+                .build();
+
+            const validator = new Ajv().compile(schema);
+            const isValid = validator(model);
+
+            isValid.should.be.eql(true, JSON.stringify(validator.errors));
+        });
+
+        it("Should not allow duplicate items when uniqueItems is true", function () {
+
+            const model: Model = {
+                ArrayProp: [1, 2, 3, 3]
+            };
+
+            const schema = new Schema<Model>()
+                .with(m => m.ArrayProp, {
+                    uniqueItems: true
+                })
+                .build();
+
+            const validator = new Ajv().compile(schema);
+            const isValid = validator(model);
+
+            isValid.should.be.eql(false, JSON.stringify(validator.errors));
+        });
+    })
+
+
+    /**
+     * @see https://json-schema.org/understanding-json-schema/reference/array.html#list-validation
+     */
+    describe("List validation", () => {
+        it("Should fail is doesn't contain required items", function () {
+
+            const model: Model = {
+                ArrayProp: [1, 2, 3]
+            };
+
+            const schema = new Schema<Model>()
+                .with(m => m.ArrayProp, [1, 2, 3, 4])
+                .build();
+
+            const validator = new Ajv().compile(schema);
+            const isValid = validator(model);
+
+            isValid.should.be.eql(true, JSON.stringify(validator.errors));
+        });
     });
 
 });

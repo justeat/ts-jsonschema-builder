@@ -58,6 +58,29 @@ describe("Exact string validation", function () {
 
 });
 
+
+describe.skip("Format string validation", function () {
+
+    it("Should pass when string matches date-time ", function () {
+
+        const model: Model = {
+            StringProp: "sergej.popov"
+        };
+
+        const schema = new Schema<Model>()
+            .with(m => m.StringProp, {
+                format: "date-time"
+            })
+            .build();
+
+
+        const validator = new Ajv().compile(schema);
+        const isValid = validator(model);
+
+        isValid.should.be.eql(true, JSON.stringify(validator.errors));
+    });
+});
+
 describe("RegEx validation", function () {
     it("Should pass when string matches RegEx", function () {
 
@@ -95,38 +118,38 @@ describe("RegEx validation", function () {
 
 describe("Expression string length validation", function () {
 
-  testCase(
-    [
-      { expression: (x: string) => x.length == 10, expected: true, reason: "eq" },
-      { expression: (x: string) => x.length === 10, expected: true, reason: "eq" },
-      { expression: (x: string) => x.length == 9, expected: false, reason: "eq" },
-      { expression: (x: string) => x.length === 9, expected: false, reason: "eq" },
-      { expression: (x: string) => x.length == 11, expected: false, reason: "eq" },
-      { expression: (x: string) => x.length === 11, expected: false, reason: "eq" },
-      { expression: (x: string) => x.length < 11, expected: true, reason: "lt" },
-      { expression: (x: string) => x.length < 10, expected: false, reason: "lt" },
-      { expression: (x: string) => x.length <= 10, expected: true, reason: "lte" },
-      { expression: (x: string) => x.length <= 9, expected: false, reason: "lte" },
-      { expression: (x: string) => x.length > 9, expected: true, reason: "gt" },
-      { expression: (x: string) => x.length > 10, expected: false, reason: "gt" },
-      { expression: (x: string) => x.length >= 10, expected: true, reason: "gte" },
-      { expression: (x: string) => x.length >= 11, expected: false, reason: "gte" },
-    ], c => {
-      it(`Should ${c.expected ? "pass" : "fail"} when number matches ${c.reason} expression`, function () {
+    testCase(
+        [
+            { expression: (x: string) => x.length == 10, expected: true, reason: "eq" },
+            { expression: (x: string) => x.length === 10, expected: true, reason: "eq" },
+            { expression: (x: string) => x.length == 9, expected: false, reason: "eq" },
+            { expression: (x: string) => x.length === 9, expected: false, reason: "eq" },
+            { expression: (x: string) => x.length == 11, expected: false, reason: "eq" },
+            { expression: (x: string) => x.length === 11, expected: false, reason: "eq" },
+            { expression: (x: string) => x.length < 11, expected: true, reason: "lt" },
+            { expression: (x: string) => x.length < 10, expected: false, reason: "lt" },
+            { expression: (x: string) => x.length <= 10, expected: true, reason: "lte" },
+            { expression: (x: string) => x.length <= 9, expected: false, reason: "lte" },
+            { expression: (x: string) => x.length > 9, expected: true, reason: "gt" },
+            { expression: (x: string) => x.length > 10, expected: false, reason: "gt" },
+            { expression: (x: string) => x.length >= 10, expected: true, reason: "gte" },
+            { expression: (x: string) => x.length >= 11, expected: false, reason: "gte" },
+        ], c => {
+            it(`Should ${c.expected ? "pass" : "fail"} when number matches ${c.reason} expression`, function () {
 
-        const model: Model = {
-          StringProp: "10CharStr."
-        };
+                const model: Model = {
+                    StringProp: "10CharStr."
+                };
 
-        const schema = new Schema<Model>()
-          .with(m => m.StringProp, c.expression)
-          .build();
+                const schema = new Schema<Model>()
+                    .with(m => m.StringProp, c.expression)
+                    .build();
 
-        const validator = new Ajv().compile(schema);
-        const isValid = validator(model);
+                const validator = new Ajv().compile(schema);
+                const isValid = validator(model);
 
-        isValid.should.be.eql(c.expected);
-      });
-    });
+                isValid.should.be.eql(c.expected);
+            });
+        });
 
 });

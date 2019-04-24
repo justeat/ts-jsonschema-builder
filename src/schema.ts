@@ -102,9 +102,7 @@ export class Schema<T> {
         .expression as ArrowFunctionExpression)
         .body as BinaryExpression;
 
-      if (expr.left.type !== "MemberExpression" ||
-        expr.left.object.type !== "Identifier" ||
-        expr.left.object.name !== "x") return { ok: false };
+      if (expr.left.type !== "Identifier" || expr.left.name !== "x") return { ok: false };
 
       const val = (expr.right as Literal).value as number;
 
@@ -128,26 +126,44 @@ export class Schema<T> {
     }
   }
 
-  private parse(value: any, arrayOptions: ArrayOptions): PrimitiveSchema | null {
-    const isArrayType = typeof arrayOptions !== "undefined";
-
+  private parse(value: any): PrimitiveSchema | null {
     if (value instanceof RegExp) return { type: "string", pattern: value.source };
-    if (value instanceof Date) {
-      return { type: "string", format: "date-time", pattern: escapeStringRegexp(value.toISOString()) };
-    }
     if (typeof value === "string") return { type: "string", pattern: escapeStringRegexp(value) };
     if (typeof value === "number") return { type: "number", minimum: value, maximum: value };
     if (typeof value === "boolean") return { type: "boolean", enum: [value] };
-    if (Array.isArray(value) && value.length === 2 && !isArrayType) return { type: "number", minimum: value[0], maximum: value[1] };
-    if (Array.isArray(value) && isArrayType) return { type: "array", uniqueItems: !!(arrayOptions & ArrayOptions.UniqueItems) };
+    if (typeof value === "object" && !Array.isArray(value)) {
+      const customiser = value as ArrayCustomiser; // only array custuomisers supported at the moment
+
+      const result: PrimitiveSchema = {
+        type: "array",
+      }
+
+      if (typeof value.length !== "undefined") {
+        console.log("UND", { l: value.length, v: value })
+        const asArr = this.tryParseAsArray(esprima.parseModule(value.length.toString()));
+        if (!asArr.ok || asArr.definition.type !== "array") throw new Error("Only array customisers supported");
+
+        if (typeof asArr.definition.maxItems !== "undefined") result.maxItems = asArr.definition.maxItems;
+        if (typeof asArr.definition.minItems !== "undefined") result.minItems = asArr.definition.minItems;
+        if (typeof asArr.definition.uniqueItems !== "undefined") result.uniqueItems = asArr.definition.uniqueItems;
+      }
+
+      if (typeof customiser.maxItems !== "undefined") result.maxItems = customiser.maxItems;
+      if (typeof customiser.minItems !== "undefined") result.minItems = customiser.minItems;
+      if (typeof customiser.uniqueItems !== "undefined") result.uniqueItems = customiser.uniqueItems;
+
+      return result;
+
+    };
+    if (Array.isArray(value) && value.length > 0) return {
+      type: "array", items: {
+        type: typeof value[0],
+        enum: value
+      }
+    };
 
     if (value instanceof Function) {
       const expression = esprima.parseModule(value.toString());
-
-      if (typeof arrayOptions !== "undefined") {
-        const asArr = this.tryParseAsArray(expression);
-        if (asArr.ok) return asArr.definition;
-      }
 
       const asNum = this.tryParseAsNumber(expression);
       if (asNum.ok) return asNum.definition;
@@ -159,16 +175,15 @@ export class Schema<T> {
     throw new Error(`Unsupposrt type. '${value.constructor}'`)
   }
 
-  with(selector: (model: T) => string, value: string | RegExp): Schema<T>;
   with(selector: (model: T) => string, value: (model: string) => boolean): Schema<T>;
-  with(selector: (model: T) => number, value: number | [number, number]): Schema<T>;
+  with(selector: (model: T) => string, value: StringCustomiser): Schema<T>;
+  with(selector: (model: T) => string, value: string | RegExp): Schema<T>;
+  with(selector: (model: T) => number, value: number): Schema<T>;
   with(selector: (model: T) => number, value: (model: number) => boolean): Schema<T>;
   with(selector: (model: T) => boolean, value: boolean): Schema<T>;
-  with(selector: (model: T) => Date, value: Date): Schema<T>;
-  with(selector: (model: T) => any[], value: any[], options: ArrayOptions): Schema<T>;
-  with(selector: (model: T) => any[], value: (model: any[]) => boolean, options: ArrayOptions): Schema<T>;
-  // with(selector: (model: T) => Array<any>, value: (model: Array<any>) => boolean, options: ArrayOptions): Schema<T>;
-  with(selector: any, value: any, options?: undefined): any {
+  with(selector: (model: T) => any[], value: ArrayCustomiser): Schema<T>;
+  with(selector: (model: T) => any[], value: any[]): Schema<T>;
+  with(selector: any, value: any): any {
     const memberExpr = this.getMemberExpression(selector);
 
     const invertedExpression = [];
@@ -185,7 +200,7 @@ export class Schema<T> {
     let $ref: any = this.schema, $member;
     for ($member of invertedExpression) {
       $ref.properties = $ref.properties || {};
-      if ($member.leaf) $ref.properties[$member.title] = this.parse(value, options);
+      if ($member.leaf) $ref.properties[$member.title] = this.parse(value);
       else $ref.properties[$member.title] = $ref.properties[$member.title] || { title: $member.title, type: "object" }
 
       $ref.required = $ref.required ? Array.from(new Set([...$ref.required, $member.title])) : [$member.title];
@@ -204,23 +219,24 @@ export class Schema<T> {
 
 }
 
-// type Prop = { path: string, type: Function, value: any, definition: SchemaTypeOpts<any> };
-
 type PrimitiveSchema =
   { type: "string", pattern?: RegExp | String, format?: String, minLength?: number, maxLength?: number } |
-  { type: "array", minItems?: number, maxItems?: number, uniqueItems?: boolean } |
+  { type: "array", minItems?: number, maxItems?: number, uniqueItems?: boolean, items?: { type: string, enum?: any[] } } |
   { type: "number", minimum?: number, maximum?: number } |
   { type: "boolean", enum: boolean[] }
 
 
 
-// Options flags must not clash with other Options enums. This is what allows type detection
-export enum ArrayOptions {
-  Default = 0,
-  UniqueItems = 1 << 1,
+export interface ArrayCustomiser {
+  minItems?: number,
+  maxItems?: number,
+  uniqueItems?: boolean,
+  length?: (model: number) => boolean
 }
 
-export enum DateOptions {
-  Default = 1 << 2,
-  AllowAdditional = 1 << 3,
+export interface StringCustomiser {
+  format?: "date-time",
+  pattern?: RegExp,
+  minLength?: number,
+  maxLength?: number
 }
