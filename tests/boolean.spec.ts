@@ -10,11 +10,11 @@ describe("Exact Bool validation", function () {
     it("Should pass when Bool matches exactly ", function () {
 
         const model: Model = {
-            BoolProp: false
+            BooleanProp: false
         };
 
         const schema = new Schema<Model>()
-            .with(m => m.BoolProp, false)
+            .with(m => m.BooleanProp, false)
             .build();
 
         const validator = new Ajv().compile(schema);
@@ -26,11 +26,11 @@ describe("Exact Bool validation", function () {
     it("Should fail when Bool doesn't match exactly ", function () {
 
         const model: Model = {
-            BoolProp: false
+            BooleanProp: false
         };
 
         const schema = new Schema<Model>()
-            .with(m => m.BoolProp, true)
+            .with(m => m.BooleanProp, true)
             .build();
 
         const validator = new Ajv().compile(schema);

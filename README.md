@@ -11,7 +11,7 @@ V1 of the builder aims to implement Draft-V4
 ```typescript
 const schema = new Schema<Model>()
     .with(m => m.StringProp, /^[A-z]+\.[A-z]+$/)
-    .with(m => m.NumProp, x => x > 15)
+    .with(m => m.NumberProp, x => x > 15)
     .with(m => m.ObjProp.Lvl2ObjProp.Lvl3StrProp, "specificValue")
     .with(m => m.ArrayProp, {
         length: x => x < 10,
@@ -30,7 +30,7 @@ const schema = new Schema<Model>()
             "type": "string",
             "pattern": "^[A-z]+\\.[A-z]+$"
         },
-        "NumProp": {
+        "NumberProp": {
             "type": "number",
             "minimum": 16
         },
@@ -63,7 +63,7 @@ const schema = new Schema<Model>()
     },
     "required": [
         "StringProp",
-        "NumProp",
+        "NumberProp",
         "ObjProp",
         "ArrayProp"
     ]
@@ -113,12 +113,12 @@ const schema = new Schema<Model>()
 
 
 <details>
-  <summary><h2 style="display: inline">Numeric</h2> (click to expand)</summary>
+  <summary><h2 style="display: inline">Number</h2> (click to expand)</summary>
   
 ### Multiples
 ```typescript
 const schema = new Schema<Model>()
-    .with(m => m.NumProp, new NumberSchema({
+    .with(m => m.NumberProp, new NumberSchema({
         multipleOf: 10
     }))
     .build();
@@ -127,9 +127,9 @@ const schema = new Schema<Model>()
 ### Range
 ```typescript
 const schema = new Schema<Model>()
-    .with(m => m.NumProp, x => x >= 10)
+    .with(m => m.NumberProp, x => x >= 10)
     // or
-    .with(m => m.NumProp, new NumberSchema({
+    .with(m => m.NumberProp, new NumberSchema({
         minimum: 10,
         maximum: 15,
     })
@@ -151,7 +151,7 @@ Leaf node must be non object type, will be parsed according to its type;
 
 ```typescript
 const schema = new Schema<Model>()
-    .with(m => m.ObjProp.Lvl2ObjProp.Lvl3StrProp, /^[a-zA-Z]+\.[a-zA-Z]+$/)
+    .with(m => m.ObjProp.Lvl2ObjProp.Lvl3StrProp, /^[A-z]+\.[A-z]+$/)
     .build();
 ```
 
@@ -219,7 +219,7 @@ const schema = new Schema<Model>()
 ### Value
 ```typescript
 const schema = new Schema<Model>()
-    .with(m => m.BoolProp, false)
+    .with(m => m.BooleanProp, false)
     .build();
 ```
 

@@ -2,7 +2,7 @@ import Ajv from "ajv";
 import { describe, it } from "mocha";
 import { should } from "chai";
 
-import { Schema, ArraySchema} from "../src/schema";
+import { Schema, ArraySchema, StringSchema, NumberSchema } from "../src/schema";
 import { Model } from "./models";
 should();
 
@@ -12,8 +12,8 @@ describe("Usage", function () {
 
     const model: Model = {
       StringProp: "abc.def",
-      NumProp: 10,
-      BoolProp: false,
+      NumberProp: 10,
+      BooleanProp: false,
       ArrayProp: [1, 2, 3],
       ObjProp: {
         Lvl2ObjProp: {
@@ -23,14 +23,14 @@ describe("Usage", function () {
     };
 
     const schema = new Schema<Model>()
-      .with(m => m.StringProp, /^[a-zA-Z]+\.[a-zA-Z]+$/)
-      .with(m => m.NumProp, x => x >= 10)
-      .with(m => m.BoolProp, false)
+      .with(m => m.StringProp, /^[A-z]+\.[A-z]+$/)
+      .with(m => m.NumberProp, x => x >= 10)
+      .with(m => m.BooleanProp, false)
       .with(m => m.ArrayProp, new ArraySchema({
         length: x => x >= 3,
         uniqueItems: true
       }))
-      .with(m => m.ObjProp.Lvl2ObjProp.Lvl3StrProp, /^[a-zA-Z]+\.[a-zA-Z]+$/)
+      .with(m => m.ObjProp.Lvl2ObjProp.Lvl3StrProp, /^[A-z]+\.[A-z]+$/)
       .build();
 
     const validator = new Ajv().compile(schema);
@@ -71,7 +71,7 @@ describe("Structural", function () {
     };
 
     const schema = new Schema<Model>()
-      .with(m => m.ObjProp.Lvl2ObjProp.Lvl3StrProp, /^[a-zA-Z]+\.[a-zA-Z]+$/)
+      .with(m => m.ObjProp.Lvl2ObjProp.Lvl3StrProp, /^[A-z]+\.[A-z]+$/)
       .build();
 
     const validator = new Ajv().compile(schema);

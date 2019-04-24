@@ -1,9 +1,8 @@
 export class Model {
     public StringProp?: string;
-    public NumProp?: number;
-    public BoolProp?: boolean;
+    public NumberProp?: number;
+    public BooleanProp?: boolean;
     public ArrayProp?: Array<number>;
-    public DateProp?: Date;
     public ObjProp?: Model2;
 }
 

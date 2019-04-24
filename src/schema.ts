@@ -144,6 +144,13 @@ export class Schema<T> {
       if (typeof typeSchema.maxItems !== "undefined") result.maxItems = typeSchema.maxItems;
       if (typeof typeSchema.minItems !== "undefined") result.minItems = typeSchema.minItems;
       if (typeof typeSchema.uniqueItems !== "undefined") result.uniqueItems = typeSchema.uniqueItems;
+      if (typeof typeSchema.additionalItems !== "undefined") result.additionalItems = typeSchema.additionalItems;
+      if (typeof typeSchema.items !== "undefined") result.items = typeSchema.items.map(i => {
+        return {
+          type: typeof i,
+          enum: [i]
+        }
+      });
 
       return result;
 
@@ -195,13 +202,6 @@ export class Schema<T> {
       return result;
     }
 
-    if (Array.isArray(value) && value.length > 0) return {
-      type: "array", items: {
-        type: typeof value[0],
-        enum: value
-      }
-    };
-
     if (value instanceof Function) {
       const expression = esprima.parseModule(value.toString());
 
@@ -215,16 +215,81 @@ export class Schema<T> {
     throw new Error(`Unsupported type. '${value.constructor}'`)
   }
 
-  with(selector: (model: T) => string, value: (model: number) => boolean): Schema<T>;
-  with(selector: (model: T) => string, value: IStringSchema): Schema<T>;
-  with(selector: (model: T) => string, value: string | RegExp): Schema<T>;
-  with(selector: (model: T) => number, value: number): Schema<T>;
-  with(selector: (model: T) => number, value: (model: number) => boolean): Schema<T>;
-  with(selector: (model: T) => number, value: INumberSchema): Schema<T>;
-  with(selector: (model: T) => boolean, value: boolean): Schema<T>;
-  with(selector: (model: T) => any[], value: IArraySchema): Schema<T>;
-  with(selector: (model: T) => any[], value: any[]): Schema<T>;
-  with(selector: any, value: any): any {
+
+
+  /**
+   * @description Specify length for a string property
+   * @param {(model: T) => string} selector String property selector
+   * @param {(model: number) => boolean} schema The length of a string can be constrained using Expression. x => x < 10, Supported operators: `==`, `===`, `>=`, `<=`, `>`, `<`
+   * @example
+   * .with(m => m.StringProp, x => x < 10);
+   */
+  with(selector: (model: T) => string, schema: (model: number) => boolean): Schema<T>;
+
+  /**
+   * @description Specify schema for a string property
+   * @param {(model: T) => string} selector String property selector
+   * @param {IStringSchema} schema String schema
+   * @example
+   * .with(m => m.StringProp, new StringSchema({...}));
+   */
+  with(selector: (model: T) => string, schema: IStringSchema): Schema<T>;
+
+  /**
+   * @description Specify value or RegExp pattern for a string property
+   * @param {(model: T) => string} selector String property selector
+   * @param {string | RegExp} schema The pattern is used to restrict a string to a particular regular expression.
+   * @example
+   * .with(m => m.StringProp, "specificValue");
+   * .with(m => m.StringProp, /^[A-z]+\.[A-z]+$/);
+   */
+  with(selector: (model: T) => string, schema: string | RegExp): Schema<T>;
+
+  /**
+   * @description Specify value for a number property
+   * @param {(model: T) => number} selector Number property selector
+   * @param {number} schema The value is used to restrict number property.
+   * @example
+   * .with(m => m.NumberProp, 10);
+   */
+  with(selector: (model: T) => number, schema: number): Schema<T>;
+
+  /**
+   * @description Specify range for a number property
+   * @param {(model: T) => number} selector Number property selector
+   * @param {(model: number) => boolean} schema The range of a number can be constrained using Expression. x => x < 10, Supported operators: `==`, `===`, `>=`, `<=`, `>`, `<`
+   * @example
+   * .with(m => m.NumberProp, x => x < 10);
+   */
+  with(selector: (model: T) => number, schema: (model: number) => boolean): Schema<T>;
+
+  /**
+   * @description Specify schema for a number property
+   * @param {(model: T) => number} selector Number property selector
+   * @param {INumberSchema} schema Number schema
+   * @example
+   * .with(m => m.StringProp, new NumberSchema({...}));
+   */
+  with(selector: (model: T) => number, schema: INumberSchema): Schema<T>;
+
+  /**
+   * @description Specify value for a boolean property
+   * @param {(model: T) => boolean} selector Boolean property selector
+   * @param {boolean} schema The value is used to restrict boolean property.
+   * @example
+   * .with(m => m.BooleanProp, 10);
+   */
+  with(selector: (model: T) => boolean, schema: boolean): Schema<T>;
+
+  /**
+   * @description Specify schema for a array property
+   * @param {(model: T) => any[]} selector Array property selector
+   * @param {IArraySchema} schema Array schema
+   * @example
+   * .with(m => m.ArrayProp, new ArraySchema({...}));
+   */
+  with(selector: (model: T) => any[], schema: IArraySchema): Schema<T>;
+  with(selector: any, schema: any): any {
     const memberExpr = this.getMemberExpression(selector);
 
     const invertedExpression = [];
@@ -241,7 +306,7 @@ export class Schema<T> {
     let $ref: any = this.schema, $member;
     for ($member of invertedExpression) {
       $ref.properties = $ref.properties || {};
-      if ($member.leaf) $ref.properties[$member.title] = this.parse(value);
+      if ($member.leaf) $ref.properties[$member.title] = this.parse(schema);
       else $ref.properties[$member.title] = $ref.properties[$member.title] || { title: $member.title, type: "object" }
 
       $ref.required = $ref.required ? Array.from(new Set([...$ref.required, $member.title])) : [$member.title];
@@ -264,7 +329,7 @@ export class Schema<T> {
 // todo: replace below with interfaces
 type PrimitiveSchema =
   { type: "string", pattern?: RegExp | String, format?: String, minLength?: number, maxLength?: number } |
-  { type: "array", minItems?: number, maxItems?: number, uniqueItems?: boolean, items?: { type: string, enum?: any[] } } |
+  { type: "array", minItems?: number, maxItems?: number, uniqueItems?: boolean, additionalItems?: boolean, items?: { type: string, enum?: any[] }[] } |
   { type: "number", multipleOf?: number, minimum?: number, maximum?: number } |
   { type: "boolean", enum: boolean[] }
 
@@ -275,10 +340,42 @@ export interface ITypeSchema {
 }
 
 export interface IArraySchema {
+
+  /**
+   * @description The length of the array can be specified using the minItems and maxItems keywords. The value of each keyword must be a non-negative number. These keywords work whether doing List validation or Tuple validation.
+   * @see https://json-schema.org/understanding-json-schema/reference/array.html#length
+   */
   readonly minItems?: number,
+
+  /**
+   * @description The length of the array can be specified using the minItems and maxItems keywords. The value of each keyword must be a non-negative number. These keywords work whether doing List validation or Tuple validation.
+   * @see  https://json-schema.org/understanding-json-schema/reference/array.html#length
+   */
   readonly maxItems?: number,
+
+  /**
+   * @description A schema can ensure that each of the items in an array is unique. Simply set the uniqueItems keyword to true.
+   * @see https://json-schema.org/understanding-json-schema/reference/array.html#uniqueness
+   */
   readonly uniqueItems?: boolean,
+
+  /**
+   * @description The length of the array can be specified using Expression. x => x < 10. Supported operators: `==`, `===`, `>=`, `<=`, `>`, `<`
+   * @see https://json-schema.org/understanding-json-schema/reference/array.html#length
+   */
   readonly length?: (model: number) => boolean
+
+  /**
+   * @description Tuple validation is useful when the array is a collection of items where each has a different schema and the ordinal index of each item is meaningful.
+   * @see https://json-schema.org/understanding-json-schema/reference/array.html#tuple-validation
+   */
+  readonly items?: any[]
+
+  /**
+   * @description The additionalItems keyword controls whether it’s valid to have additional items in the array beyond what is defined in items.
+   * @see https://json-schema.org/understanding-json-schema/reference/array.html#tuple-validation
+   */
+  readonly additionalItems?: boolean
 }
 
 export class ArraySchema implements IArraySchema, ITypeSchema {
@@ -288,16 +385,48 @@ export class ArraySchema implements IArraySchema, ITypeSchema {
   public readonly maxItems?: number;
   public readonly uniqueItems?: boolean;
   public readonly length?: (model: number) => boolean;
+  public readonly items?: any[];
+  public readonly additionalItems?: boolean;
 
   constructor(schema: IArraySchema) {
     Object.assign(this, schema);
   }
 }
 export interface IStringSchema {
-  readonly format?: "date-time";
+
+  /**
+   * @description The format keyword allows for basic semantic validation on certain kinds of string values that are commonly used. 
+   * Built-in formats: `date-time`, `email`, `hostname`, `ipv4`, `ipv6`, `uri` 
+   * @example
+   * new StringSchema({ 
+   *   format: "date-time" 
+   * })
+   * @see https://json-schema.org/understanding-json-schema/reference/string.html#format
+   */
+  readonly format?: "date-time" | "email" | "hostname" | "ipv4" | "ipv6" | "uri"; //todo: only date-time tested
+
+  /**
+   * @description The pattern keyword is used to restrict a string to a particular regular expression.
+   * @see https://json-schema.org/understanding-json-schema/reference/string.html#regular-expressions
+   */
   readonly pattern?: RegExp;
+
+  /**
+   * @description The length of a string can be constrained using the minLength and maxLength keywords. For both keywords, the value must be a non-negative number.
+   * @see https://json-schema.org/understanding-json-schema/reference/string.html#length
+   */
   readonly minLength?: number;
+
+  /**
+   * @description The length of a string can be constrained using the minLength and maxLength keywords. For both keywords, the value must be a non-negative number.
+   * @see https://json-schema.org/understanding-json-schema/reference/string.html#length
+   */
   readonly maxLength?: number;
+
+  /**
+   * @description The length of a string can be constrained using Expression. x => x < 10, Supported operators: `==`, `===`, `>=`, `<=`, `>`, `<`
+   * @see https://json-schema.org/understanding-json-schema/reference/string.html#length
+   */
   readonly length?: (model: number) => boolean;
 }
 
@@ -319,9 +448,33 @@ export class StringSchema implements IStringSchema, ITypeSchema {
 }
 
 export interface INumberSchema {
-  readonly multipleOf?: number; // todo: test
+
+  /**
+   * @description Numbers can be restricted to a multiple of a given number, using the multipleOf keyword. It may be set to any positive number.
+   * @see https://json-schema.org/understanding-json-schema/reference/numeric.html#multiples
+   */
+  readonly multipleOf?: number;
+
+  /**
+   * @description Ranges of numbers are specified using a combination of the minimum and maximum keywords
+   * @see https://json-schema.org/understanding-json-schema/reference/numeric.html#range
+   */
   readonly minimum?: number;
+
+  /**
+   * @description Ranges of numbers are specified using a combination of the minimum and maximum keywords
+   * @see https://json-schema.org/understanding-json-schema/reference/numeric.html#range
+   */
   readonly maximum?: number;
+
+  /**
+   * @description Ranges of numbers are specified using Expression. x => x < 10, Supported operators: `==`, `===`, `>=`, `<=`, `>`, `<`
+   * @example 
+   * new NumberSchema({
+   *     value: x => x <= 15
+   * })
+   * @see https://json-schema.org/understanding-json-schema/reference/numeric.html#range
+   */
   readonly value?: (model: number) => boolean;
 }
 

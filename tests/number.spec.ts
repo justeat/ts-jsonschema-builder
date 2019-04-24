@@ -9,18 +9,18 @@ should();
 /**
  * @see https://json-schema.org/understanding-json-schema/reference/numeric.html
  */
-describe("Numeric", function () {
+describe("Number", function () {
 
     describe("Exact number validation", function () {
 
         it("Should pass when number matches exactly ", function () {
 
             const model: Model = {
-                NumProp: 10
+                NumberProp: 10
             };
 
             const schema = new Schema<Model>()
-                .with(m => m.NumProp, 10)
+                .with(m => m.NumberProp, 10)
                 .build();
 
             const validator = new Ajv().compile(schema);
@@ -32,11 +32,11 @@ describe("Numeric", function () {
         it("Should fail when number is smaller than expected", function () {
 
             const model: Model = {
-                NumProp: 10
+                NumberProp: 10
             };
 
             const schema = new Schema<Model>()
-                .with(m => m.NumProp, 20)
+                .with(m => m.NumberProp, 20)
                 .build();
 
             const validator = new Ajv().compile(schema);
@@ -48,11 +48,11 @@ describe("Numeric", function () {
         it("Should fail when number is greater than expected", function () {
 
             const model: Model = {
-                NumProp: 30
+                NumberProp: 30
             };
 
             const schema = new Schema<Model>()
-                .with(m => m.NumProp, 20)
+                .with(m => m.NumberProp, 20)
                 .build();
 
             const validator = new Ajv().compile(schema);
@@ -71,11 +71,11 @@ describe("Numeric", function () {
         it("Should pass when number is matching multipleOf", function () {
 
             const model: Model = {
-                NumProp: 30
+                NumberProp: 30
             };
 
             const schema = new Schema<Model>()
-                .with(m => m.NumProp, new NumberSchema({
+                .with(m => m.NumberProp, new NumberSchema({
                     multipleOf: 10
                 }))
                 .build();
@@ -89,11 +89,11 @@ describe("Numeric", function () {
         it("Should fail when number is not matching multipleOf", function () {
 
             const model: Model = {
-                NumProp: 13
+                NumberProp: 13
             };
 
             const schema = new Schema<Model>()
-                .with(m => m.NumProp, new NumberSchema({
+                .with(m => m.NumberProp, new NumberSchema({
                     multipleOf: 10
                 }))
                 .build();
@@ -123,11 +123,11 @@ describe("Numeric", function () {
                     it(`Should ${c.expected ? "pass" : "fail"} when range is ${c.range}. ${c.reason}`, function () {
 
                         const model: Model = {
-                            NumProp: 10
+                            NumberProp: 10
                         };
 
                         const schema = new Schema<Model>()
-                            .with(m => m.NumProp, new NumberSchema({
+                            .with(m => m.NumberProp, new NumberSchema({
                                 minimum: c.range[0],
                                 maximum: c.range[1],
                             }))
@@ -163,11 +163,11 @@ describe("Numeric", function () {
                     it(`Should ${c.expected ? "pass" : "fail"} when number matches ${c.reason} expression`, function () {
 
                         const model: Model = {
-                            NumProp: 10
+                            NumberProp: 10
                         };
 
                         const schema = new Schema<Model>()
-                            .with(m => m.NumProp, c.expression)
+                            .with(m => m.NumberProp, c.expression)
                             .build();
 
                         const validator = new Ajv().compile(schema);

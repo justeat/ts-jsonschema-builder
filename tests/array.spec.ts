@@ -115,23 +115,80 @@ describe("Array", function () {
 
 
     /**
-     * @see https://json-schema.org/understanding-json-schema/reference/array.html#list-validation
+     * @see https://json-schema.org/understanding-json-schema/reference/array.html#tuple-validation
      */
-    describe("List validation", () => {
-        it("Should fail is doesn't contain required items", function () {
+    describe("Tuple validation", () => {
+        it("Should fail if doesn't contain required items is same order", function () {
 
             const model: Model = {
-                ArrayProp: [1, 2, 3]
+                ArrayProp: [2, 1]
             };
 
             const schema = new Schema<Model>()
-                .with(m => m.ArrayProp, [1, 2, 3, 4])
+                .with(m => m.ArrayProp, new ArraySchema({
+                    items: [1, 2]
+                }))
+                .build();
+
+            const validator = new Ajv().compile(schema);
+            const isValid = validator(model);
+
+            isValid.should.be.eql(false, JSON.stringify(validator.errors));
+        });
+
+        it("Should pass if contains required items is same order", function () {
+
+            const model: Model = {
+                ArrayProp: [1, 2]
+            };
+
+            const schema = new Schema<Model>()
+                .with(m => m.ArrayProp, new ArraySchema({
+                    items: [1, 2]
+                }))
                 .build();
 
             const validator = new Ajv().compile(schema);
             const isValid = validator(model);
 
             isValid.should.be.eql(true, JSON.stringify(validator.errors));
+        });
+
+        it("Should pass if contains additional items and it is not explicitly restricted", function () {
+
+            const model: Model = {
+                ArrayProp: [1, 2, 3]
+            };
+
+            const schema = new Schema<Model>()
+                .with(m => m.ArrayProp, new ArraySchema({
+                    items: [1, 2]
+                }))
+                .build();
+
+            const validator = new Ajv().compile(schema);
+            const isValid = validator(model);
+
+            isValid.should.be.eql(true, JSON.stringify(validator.errors));
+        });
+
+        it("Should fail if contains additional items and it is explicitly restricted", function () {
+
+            const model: Model = {
+                ArrayProp: [1, 2, 3]
+            };
+
+            const schema = new Schema<Model>()
+                .with(m => m.ArrayProp, new ArraySchema({
+                    items: [1, 2],
+                    additionalItems: false
+                }))
+                .build();
+
+            const validator = new Ajv().compile(schema);
+            const isValid = validator(model);
+
+            isValid.should.be.eql(false, JSON.stringify(validator.errors));
         });
     });
 
