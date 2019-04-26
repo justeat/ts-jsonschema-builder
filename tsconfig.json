@@ -1,31 +1,32 @@
 {
   "compilerOptions": {
-    "target": "es6",
+    "target": "es5",
     "strict": false,
-    "experimentalDecorators": true,
     "esModuleInterop": true,
-    "emitDecoratorMetadata": true,
     "sourceMap": true,
     "module": "commonjs",
     "baseUrl": ".",
+    "outDir": "./dist",
+    "declaration": true,
     "types": [
       "mocha",
       "chai",
       "node"
     ],
     "paths": {
-      "*": ["types/*"],
+      "*": [
+        "types/*"
+      ],
     },
     "lib": [
       "esnext"
     ]
   },
   "include": [
-    "src/**/*.ts",
-    "tests/*.ts",
-    "tests/**/*.ts"
+    "src/**/*.ts"
   ],
   "exclude": [
+    "./out",
     "node_modules"
   ]
 }

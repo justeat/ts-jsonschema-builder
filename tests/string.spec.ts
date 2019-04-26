@@ -1,33 +1,93 @@
-import Ajv from "ajv";
-import { should } from "chai";
-
 import { testCase } from "./test-case";
 import { Model } from "./models";
-import { Schema, StringSchema } from "../src/schema";
-should();
+import { Schema, StringSchema } from "../src";
+import { assertValid, assertInvalid, assert } from "./assertion";
 
 
 describe("String", () => {
 
-    describe("Exact string validation", function () {
+    /**
+     * @see https://json-schema.org/understanding-json-schema/reference/string.html#string
+     */
+    describe("Type", () => {
 
-        it("Should pass when string matches exactly ", function () {
+        it("Should pass when string property type matches ", () => {
 
             const model: Model = {
                 StringProp: "abc.def"
             };
 
             const schema = new Schema<Model>()
+                .with(m => m.StringProp, new StringSchema())
+                .build();
+
+            assertValid(schema, model);
+        });
+
+        it("Should fail when type doesn't match", () => {
+
+            const model = {
+                StringProp: 123
+            };
+
+            const schema = new Schema<Model>()
+                .with(m => m.StringProp, new StringSchema())
+                .build();
+
+            assertInvalid(schema, model);
+        });
+
+        it("Should fail when property is missing and 'required: false' is not explicitly specified", () => {
+
+            const model = {};
+
+            const schema = new Schema<Model>()
+                .with(m => m.StringProp, new StringSchema())
+                .build();
+
+            assertInvalid(schema, model);
+        });
+
+        it("Should pass when property is missing and 'required: false' is explicitly specified", () => {
+
+            const model = {};
+
+            const schema = new Schema<Model>()
+                .with(m => m.StringProp, new StringSchema({
+                    required: false
+                }))
+                .build();
+
+            assertValid(schema, model);
+        });
+    });
+
+
+    describe("Exact string validation", () => {
+
+        it("Should pass when string matches exactly ", () => {
+
+            const model: Model = {
+                StringProp: "abc.def"
+            };
+
+            const schema = new Schema<Model>()
+                .with(m => m.StringProp, new StringSchema({
+                    enum: ["abc.def"]
+                }))
+                .build();
+
+            assertValid(schema, model);
+
+
+            const schema2 = new Schema<Model>()
                 .with(m => m.StringProp, "abc.def")
                 .build();
 
-            const validator = new Ajv().compile(schema);
-            const isValid = validator(model);
-
-            isValid.should.be.eql(true);
+            assertValid(schema, model);
         });
 
-        it("Should fail when string doesn't match exactly", function () {
+        it("Should fail when string doesn't match exactly", () => {
 
             const model: Model = {
                 StringProp: "abc.def"
@@ -37,13 +97,10 @@ describe("String", () => {
                 .with(m => m.StringProp, "def.abc")
                 .build();
 
-            const validator = new Ajv().compile(schema);
-            const isValid = validator(model);
-
-            isValid.should.be.eql(false);
+            assertInvalid(schema, model);
         });
 
-        it("Should pass when string contains regex special characters", function () {
+        it("Should pass when string contains regex special characters", () => {
 
             const model: Model = {
                 StringProp: "Special character: \ ^ $ * + ? . ( ) | { } [ ]"
@@ -53,10 +110,7 @@ describe("String", () => {
                 .with(m => m.StringProp, "Special character: \ ^ $ * + ? . ( ) | { } [ ]")
                 .build();
 
-            const validator = new Ajv().compile(schema);
-            const isValid = validator(model);
-
-            isValid.should.be.eql(true, JSON.stringify(validator.errors));
+            assertValid(schema, model);
         });
 
     });
@@ -65,33 +119,75 @@ describe("String", () => {
     /**
      * @see https://json-schema.org/understanding-json-schema/reference/string.html#format
      */
-    describe("Format", function () {
+    describe("Format", () => {
 
-        it("Should pass when string matches date-time ", function () {
+        testCase(
+            [
+                { value: new Date().toISOString(), format: "date-time", expected: true },
+                { value: "2019-01-01", format: "date-time", expected: false },
+                { value: "12:00:00", format: "date-time", expected: false },
+                { value: "abc", format: "date-time", expected: false },
+                { value: "abc", format: "date-time", expected: false },
 
-            const model: Model = {
-                StringProp: new Date().toISOString()
-            };
+                { value: "abc@abc.com", format: "email", expected: true },
+                { value: "abc@abc", format: "email", expected: true },
+                { value: "abc@", format: "email", expected: false },
+                { value: "@abc.com", format: "email", expected: false },
+                { value: "@@@", format: "email", expected: false },
+                { value: "abc", format: "email", expected: false },
 
-            const schema = new Schema<Model>()
-                .with(m => m.StringProp, new StringSchema({
-                    format: "date-time"
-                }))
-                .build();
+                { value: "abc.com", format: "hostname", expected: true },
+                { value: "abc.abc.com", format: "hostname", expected: true },
+                { value: "abc.com/abc", format: "hostname", expected: false },
+                { value: ".com", format: "hostname", expected: false },
+                { value: "abc.", format: "hostname", expected: false },
+                { value: "...", format: "hostname", expected: false },
+
+                { value: "192.168.1.1", format: "ipv4", expected: true },
+                { value: "10.10.10.10", format: "ipv4", expected: true },
+                { value: "255.255.255.255", format: "ipv4", expected: true },
+                { value: "256.256.256.256", format: "ipv4", expected: false },
+                { value: "10.10.10", format: "ipv4", expected: false },
+                { value: "10.10..10", format: "ipv4", expected: false },
+                { value: "...", format: "ipv4", expected: false },
+                { value: "10.10.10.a", format: "ipv4", expected: false },
+
+                { value: "2001:0db8:0000:0042:0000:8a2e:0370:7334", format: "ipv6", expected: true },
+                { value: "2001:0db8:0000:0042:0000:8a2e:0370:", format: "ipv6", expected: false },
+                { value: "2001:0db8:0000:0042:0000:8a2e:0370", format: "ipv6", expected: false },
+                { value: "10.10.10.10", format: "ipv6", expected: false },
+
+                { value: "https://abc.com", format: "uri", expected: true },
+                { value: "https://abc.com/abc", format: "uri", expected: true },
+                { value: "abc.com/abc", format: "uri", expected: false },
+                { value: "abc.com", format: "uri", expected: false },
+                { value: ".com", format: "uri", expected: false },
+                { value: "abc", format: "uri", expected: false },
+            ], c => {
+
+                it(`Should ${c.expected ? "pass" : "fail"} when string matches '${c.format}' format`, () => {
+
+                    const model: Model = {
+                        StringProp: c.value
+                    };
+
+                    const schema = new Schema<Model>()
+                        .with(m => m.StringProp, new StringSchema({
+                            format: c.format as any
+                        }))
+                        .build();
 
 
-            const validator = new Ajv().compile(schema);
-            const isValid = validator(model);
-
-            isValid.should.be.eql(true, JSON.stringify(validator.errors));
-        });
+                    assert(c.expected, schema, model);
+                });
+            });
     });
 
     /**
      * @see https://json-schema.org/understanding-json-schema/reference/string.html#regular-expressions
      */
-    describe("Regular Expressions", function () {
-        it("Should pass when string matches RegEx", function () {
+    describe("Regular Expressions", () => {
+        it("Should pass when string matches RegEx", () => {
 
             const model: Model = {
                 StringProp: "abc.def"
@@ -101,13 +197,10 @@ describe("String", () => {
                 .with(m => m.StringProp, /^[A-z]+\.[A-z]+$/)
                 .build();
 
-            const validator = new Ajv().compile(schema);
-            const isValid = validator(model);
-
-            isValid.should.be.eql(true);
+            assertValid(schema, model);
         });
 
-        it("Should fail when string doesn't match RegEx", function () {
+        it("Should fail when string doesn't match RegEx", () => {
 
             const model: Model = {
                 StringProp: "InvalidName"
@@ -117,10 +210,7 @@ describe("String", () => {
                 .with(m => m.StringProp, /^[A-z]+\.[A-z]+$/)
                 .build();
 
-            const validator = new Ajv().compile(schema);
-            const isValid = validator(model);
-
-            isValid.should.be.eql(false);
+            assertInvalid(schema, model);
         });
 
     });
@@ -128,7 +218,7 @@ describe("String", () => {
     /**
      * @see https://json-schema.org/understanding-json-schema/reference/string.html#length
      */
-    describe("Length", function () {
+    describe("Length", () => {
 
         testCase(
             [
@@ -147,7 +237,7 @@ describe("String", () => {
                 { expression: (x: number) => x >= 10, expected: true, reason: "gte" },
                 { expression: (x: number) => x >= 11, expected: false, reason: "gte" },
             ], c => {
-                it(`Should ${c.expected ? "pass" : "fail"} when number matches ${c.reason} expression`, function () {
+                it(`Should ${c.expected ? "pass" : "fail"} when number matches ${c.reason} expression`, () => {
 
                     const model: Model = {
                         StringProp: "10CharStr."
@@ -157,10 +247,7 @@ describe("String", () => {
                         .with(m => m.StringProp, new StringSchema(c.expression))
                         .build();
 
-                    const validator = new Ajv().compile(schema);
-                    const isValid = validator(model);
-
-                    isValid.should.be.eql(c.expected);
+                    assert(c.expected, schema, model);
                 });
             });
 

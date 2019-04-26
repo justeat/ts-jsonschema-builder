@@ -1,5 +1,5 @@
 export interface ITestCase {
-  reason: string;
+  reason?: string;
   [x: string]: any;
 }
 

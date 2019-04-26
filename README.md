@@ -1,6 +1,6 @@
 # Fluent TypeScript JsonSchema Builder
 
-This builder takes advantage of TypeScript [Generics](https://www.typescriptlang.org/docs/handbook/generics.html) to provide a Fluent JsonSchema builder, with full intellisense support. You don't need to worry  about knowing the JsonSchema specification, instead explore it while typing code.
+This builder takes advantage of TypeScript [Generics](https://www.typescriptlang.org/docs/handbook/generics.html) to provide a Fluent JsonSchema builder, with full intellisense support. You don't need to worry about knowing the JsonSchema specification upfront, instead explore it while typing code.
 
 
 ⚠ In beta, support in not complete. See below for the what is supported.  
@@ -13,9 +13,9 @@ const schema = new Schema<Model>()
     .with(m => m.StringProp, /^[A-z]+\.[A-z]+$/)
     .with(m => m.NumberProp, x => x > 15)
     .with(m => m.ObjProp.Lvl2ObjProp.Lvl3StrProp, "specificValue")
-    .with(m => m.ArrayProp, {
+    .with(m => m.ArrayProp, new ArraySchema({
         length: x => x < 10,
-    })
+    }))
     .build();
 ```
 
@@ -98,14 +98,15 @@ const schema = new Schema<Model>()
 ```
 
 ### Format
-⚠ Not yet supported.  
-Proposed implementation
-
 ```typescript
 const schema = new Schema<Model>()
-    .with(m => m.StringProp, {
+    .with(m => m.StringProp, new StringSchema({
         format: "date-time"
-    })
+    }))
+    // or
+    .with(m => m.StringProp, new StringSchema({
+        format: "ipv4"
+    }))
     .build();
 ```
 </details>
@@ -180,23 +181,26 @@ No proposed implementation.
   <summary><h2 style="display: inline">Array</h2> (click to expand)</summary>
   
 ### List validation
+⚠ Not yet supported.  
+No proposed implementation:
+
+### Tuple validation
 
 ```typescript
 const schema = new Schema<Model>()
-    .with(m => m.ArrayProp, [1, 2, 3])
+    .with(m => m.ArrayProp, new ArraySchema({
+        items: [1, 2],
+        additionalItems: false
+    })))
     .build();
 ```
-
-### Tuple validation
-⚠ Not yet supported.  
-No proposed implementation:
 
 ### Length
 ```typescript
 const schema = new Schema<Model>()
-    .with(m => m.ArrayProp, {
+    .with(m => m.ArrayProp, new ArraySchema({
         length: x < 3
-    })
+    }))
     .build();
 ```
 Supported operators: `==`, `===`, `>=`, `<=`, `>`, `<`
@@ -204,9 +208,9 @@ Supported operators: `==`, `===`, `>=`, `<=`, `>`, `<`
 ### Uniqueness
 ```typescript
 const schema = new Schema<Model>()
-    .with(m => m.ArrayProp, {
+    .with(m => m.ArrayProp, new ArraySchema({
         uniqueItems: false
-    })
+    }))
     .build();
 ```
 

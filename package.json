@@ -1,34 +1,34 @@
 {
-  "name": "puppet-js",
+  "name": "ts-jsonschema-builder",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc",
     "test": "mocha -r ts-node/register tests/**/*.spec.ts",
     "watch": "mocha -r ts-node/register tests/**/*.spec.ts --watch-extensions ts --watch"
   },
-  "author": "",
-  "license": "UNLICENSED",
+  "contributors": [
+    "GitHub contributors <https://github.com/justeat//graphs/contributors>"
+  ],
+  "license": "Apache-2.0",
   "dependencies": {
     "@types/node": "^11.13.7",
-    "escape-string-regexp": "^2.0.0",
     "esprima": "^4.0.1",
-    "typescript": "^3.4.4",
-    "uuid": "^3.3.2"
+    "typescript": "^3.4.4"
   },
   "devDependencies": {
     "@justeat/ancillaryrevenue-tslint-config": "^1.0.4",
     "@types/chai": "^4.1.7",
-    "@types/escape-string-regexp": "^2.0.1",
     "@types/esprima": "^4.0.2",
     "@types/mocha": "^5.2.6",
-    "@types/reflect-metadata": "^0.1.0",
-    "@types/uuid": "^3.4.4",
     "ajv": "^6.10.0",
     "chai": "^4.2.0",
     "mocha": "^6.0.2",
-    "reflect-metadata": "^0.1.13",
     "ts-mocha": "^6.0.0",
     "tslint": "^5.16.0"
   }

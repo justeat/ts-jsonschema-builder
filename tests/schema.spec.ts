@@ -1,14 +1,19 @@
-import Ajv from "ajv";
 import { describe, it } from "mocha";
-import { should } from "chai";
 
-import { Schema, ArraySchema, StringSchema, NumberSchema } from "../src/schema";
+import { Schema, ArraySchema, StringSchema } from "../src";
 import { Model } from "./models";
-should();
+import { assertValid, assertInvalid } from "./assertion";
 
-describe("Usage", function () {
+export interface RedeemRequest {
+  card: {
+    pan: number
+  },
+  type: string
+}
 
-  it("Complete picture", function () {
+describe("Usage", () => {
+
+  it("Complete picture", () => {
 
     const model: Model = {
       StringProp: "abc.def",
@@ -23,7 +28,7 @@ describe("Usage", function () {
     };
 
     const schema = new Schema<Model>()
-      .with(m => m.StringProp, /^[A-z]+\.[A-z]+$/)
+      .with(function (m) { return m.StringProp }, /^[A-z]+\.[A-z]+$/)
       .with(m => m.NumberProp, x => x >= 10)
       .with(m => m.BooleanProp, false)
       .with(m => m.ArrayProp, new ArraySchema({
@@ -33,16 +38,30 @@ describe("Usage", function () {
       .with(m => m.ObjProp.Lvl2ObjProp.Lvl3StrProp, /^[A-z]+\.[A-z]+$/)
       .build();
 
-    const validator = new Ajv().compile(schema);
-    const isValid = validator(model);
+    assertValid(schema, model);
 
-    isValid.should.be.eql(true, JSON.stringify(validator.errors));
   });
 });
 
-describe("Structural", function () {
 
-  it("Should not add same field to a required list twice", function () {
+describe("Structural", () => {
+
+  it("Should $schema version specified", () => {
+
+    const model: Model = {
+      StringProp: "abc.def"
+    };
+
+    const schema = new Schema<Model>()
+      .with(m => m.StringProp, /^[A-z]+\.[A-z]+$/)
+      .build();
+
+    schema.should.have.property("$schema", "http://json-schema.org/draft-04/schema#");
+
+    assertValid(schema, model);
+  });
+
+  it("Should not add same field to a required list twice", () => {
 
     const model: Model = {
       StringProp: "abc.def"
@@ -55,13 +74,10 @@ describe("Structural", function () {
 
     schema.required.length.should.eq(1);
 
-    const validator = new Ajv().compile(schema);
-    const isValid = validator(model);
-
-    isValid.should.be.eql(true);
+    assertValid(schema, model);
   });
 
-  it("Should require nested object", function () {
+  it("Should require nested object", () => {
 
     const model: Model = {
       ObjProp: {
@@ -74,9 +90,28 @@ describe("Structural", function () {
       .with(m => m.ObjProp.Lvl2ObjProp.Lvl3StrProp, /^[A-z]+\.[A-z]+$/)
       .build();
 
-    const validator = new Ajv().compile(schema);
-    const isValid = validator(model);
-
-    isValid.should.be.eql(false, JSON.stringify(validator.errors));
+    assertInvalid(schema, model);
   });
 });
+
+
+
+describe("EcmaScript5", () => {
+
+  it("Should support ES5 style functions", () => {
+
+    const model: Model = {
+      StringProp: "abc"
+    };
+
+    const schema = new Schema<Model>()
+      .with(function (m) { return m.StringProp }, new StringSchema(function (x) { return x >= 3 }))
+      .build();
+
+    schema.should.have.property("$schema", "http://json-schema.org/draft-04/schema#");
+
+    assertValid(schema, model);
+  });
+
+});
+
