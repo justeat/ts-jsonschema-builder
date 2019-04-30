@@ -71,4 +71,4 @@ const schema = new Schema<Model>()
 ```
 </details>
 
-For many more examples, check our [Wiki](/justeat/ts-jsonschema-builder/wiki)
+For many more examples, check our [Wiki](https://github.com/justeat/ts-jsonschema-builder/wiki)
