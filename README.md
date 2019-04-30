@@ -229,6 +229,14 @@ const schema = new Schema<Model>()
 ```
 </details>
 
+## Expression
+Builder is making heavy use of [Esprima](http://esprima.org/), high-performance ECMAScript parser.  
+This allows using expressions as property selectors.  
+For example an expression like this `x => x.Prop1.Prop2.` can be parsed into an expression tree that can be recursively inspected by the builder to produce a nested JSON Schema structure.  
+
+Property selection is not the only use case. The same technique is used for parsing binary expressions for building property value constraints.  
+For example `x => x === 10` can be parsed as a binary expression which builder can convert to JSON schema constraints, setting minimum/maximum items in the array or limiting string length.
+
 ## Contributing to the project
 Please read our [Code of Conduct](CODE_OF_CONDUCT.md) and [Contribution guidelines](CONTRIBUTING.md)
 
