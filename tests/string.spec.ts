@@ -84,7 +84,7 @@ describe("String", () => {
         .with(m => m.StringProp, "abc.def")
         .build();
 
-      assertValid(schema, model);
+      assertValid(schema2, model);
     });
 
     it("Should fail when string doesn't match exactly", () => {

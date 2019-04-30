@@ -14,7 +14,7 @@
     "watch": "mocha -r ts-node/register tests/**/*.spec.ts --watch-extensions ts --watch"
   },
   "contributors": [
-    "GitHub contributors <https://github.com/justeat//graphs/contributors>"
+    "GitHub contributors <https://github.com/justeat/ts-jsonschema-builder/contributors>"
   ],
   "license": "Apache-2.0",
   "dependencies": {

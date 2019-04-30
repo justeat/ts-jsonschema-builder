@@ -128,7 +128,7 @@ describe("Array", () => {
       assertValid(schema, model);
     });
 
-    it("Should allow duplicate items when  uniqueItems is true", () => {
+    it("Should allow duplicate items when  uniqueItems is false", () => {
 
       const model: Model = {
         ArrayProp: [1, 2, 3, 3]
@@ -164,7 +164,7 @@ describe("Array", () => {
    * @see https://json-schema.org/understanding-json-schema/reference/array.html#tuple-validation
    */
   describe("Tuple validation", () => {
-    it("Should fail if doesn't contain required items is same order", () => {
+    it("Should fail if doesn't contain required items in the same order", () => {
 
       const model: Model = {
         ArrayProp: [2, 1]
@@ -179,7 +179,7 @@ describe("Array", () => {
       assertInvalid(schema, model);
     });
 
-    it("Should pass if contains required items is same order", () => {
+    it("Should pass if contains required items in the same order", () => {
 
       const model: Model = {
         ArrayProp: [1, 2]

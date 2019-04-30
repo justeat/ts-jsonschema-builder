@@ -46,7 +46,7 @@ describe("Usage", () => {
 
 describe("Structural", () => {
 
-  it("Should $schema version specified", () => {
+  it("Should specify '$schema' version", () => {
 
     const model: Model = {
       StringProp: "abc.def"

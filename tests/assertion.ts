@@ -15,8 +15,6 @@ export function assertInvalid(schema: Object, model: any) {
 }
 
 export function assert(expected: boolean, schema: Object, model: any) {
-  // console.log("SCHEMA", JSON.stringify(schema));
-
   const validator = ajv.compile(schema);
   const isValid = validator(model);
   isValid.should.be.eql(expected, JSON.stringify(validator.errors));

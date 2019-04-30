@@ -1,5 +1,5 @@
 import * as esprima from "esprima";
-import { ExpressionStatement, ArrowFunctionExpression, MemberExpression, Identifier, ReturnStatement, BinaryExpression, Literal, Program } from "estree";
+import { ExpressionStatement, ArrowFunctionExpression, ReturnStatement, Literal } from "estree";
 
 
 export function parseAsRange(expression: Function): { min: number, max: number } {
