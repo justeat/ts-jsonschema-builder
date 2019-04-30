@@ -72,6 +72,8 @@ export class StringSchema {
       const range = parseAsRange(normalizedSchema.length);
       if (typeof range.max !== "undefined") this.maxLength = range.max;
       if (typeof range.min !== "undefined") this.minLength = range.min;
+      if (range.isMaxExclusive) this.maxLength--;
+      if (range.isMinExclusive) this.minLength++;
     }
 
     if (typeof normalizedSchema.format !== "undefined") this.format = normalizedSchema.format;

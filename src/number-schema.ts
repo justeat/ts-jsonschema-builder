@@ -43,6 +43,9 @@ export class NumberSchema implements INumberSchema {
 
   public required: boolean = true;
 
+  public readonly exclusiveMaximum: boolean;
+  public readonly exclusiveMinimum: boolean;
+
   constructor(schema?: (model: number) => boolean);
   constructor(schema?: INumberSchema)
   constructor(schema?: any) {
@@ -60,6 +63,8 @@ export class NumberSchema implements INumberSchema {
 
       if (typeof range.min !== "undefined") this.minimum = range.min;
       if (typeof range.max !== "undefined") this.maximum = range.max;
+      if (range.isMaxExclusive) this.exclusiveMaximum = true;
+      if (range.isMinExclusive) this.exclusiveMinimum  = true;
     }
 
     if (typeof normalizedSchema.multipleOf !== "undefined") this.multipleOf = normalizedSchema.multipleOf;

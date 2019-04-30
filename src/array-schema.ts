@@ -66,6 +66,8 @@ export class ArraySchema {
       const range = parseAsRange(schema.length);
       if (typeof range.max !== "undefined") this.maxItems = range.max;
       if (typeof range.min !== "undefined") this.minItems = range.min;
+      if (range.isMaxExclusive) this.maxItems--;
+      if (range.isMinExclusive) this.minItems++;
     }
 
     if (typeof schema.maxItems !== "undefined") this.maxItems = schema.maxItems;
