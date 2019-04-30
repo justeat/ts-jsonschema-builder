@@ -1,12 +1,12 @@
-# Fluent TypeScript JsonSchema Builder
+# Fluent TypeScript JSON Schema Builder
 
-This builder takes advantage of TypeScript [Generics](https://www.typescriptlang.org/docs/handbook/generics.html) to provide a Fluent JsonSchema builder, with full intellisense support. You don't need to worry about knowing the JsonSchema specification upfront, instead explore it while typing code.
+This builder takes advantage of TypeScript [Generics](https://www.typescriptlang.org/docs/handbook/generics.html) to provide a Fluent JSON Schema builder, with full IntelliSense support. You don't need to worry about knowing the JSON Schema specification upfront, instead explore it while typing code.
 
 
-⚠ In beta, support in not complete. See below for the what is supported.  
+⚠ In beta, support is not complete. See below for what is supported.  
 V1 of the builder aims to implement Draft-V4
 
-![Builder demo](.\assets\ts-schema-demo.gif)
+![Builder demo](assets/ts-schema-demo.gif)
 
 ```typescript
 const schema = new Schema<Model>()
@@ -71,9 +71,10 @@ const schema = new Schema<Model>()
 ```
 </details>
 
+## API reference
 
 <details>
-  <summary><h2 style="display: inline">String</h2>  (click to expand)</summary>
+  <summary><code>STRING</code> <sub>(click to expand)</sub></summary>
   
 ### Specific value
 ```typescript
@@ -114,7 +115,7 @@ const schema = new Schema<Model>()
 
 
 <details>
-  <summary><h2 style="display: inline">Number</h2> (click to expand)</summary>
+  <summary><code>NUMBER</code> <sub>(click to expand)</sub></summary>
   
 ### Multiples
 ```typescript
@@ -144,7 +145,7 @@ Does not make use of `exclusiveMaximum` due to differences in implementations be
 
 
 <details>
-  <summary><h2 style="display: inline">Object</h2> (click to expand)</summary>
+  <summary><code>OBJECT</code> <sub>(click to expand)</sub></summary>
   
 ### Properties & Required Properties
 Auto generated based on property expressions.  
@@ -178,7 +179,7 @@ No proposed implementation.
 
 
 <details>
-  <summary><h2 style="display: inline">Array</h2> (click to expand)</summary>
+  <summary><code>ARRAY</code> <sub>(click to expand)</sub></summary>
   
 ### List validation
 ⚠ Not yet supported.  
@@ -218,7 +219,7 @@ const schema = new Schema<Model>()
 
 
 <details>
-  <summary><h2 style="display: inline">Boolean</h2> (click to expand)</summary>
+  <summary><code>BOOLEAN</code> <sub>(click to expand)</sub></summary>
 
 ### Value
 ```typescript
@@ -226,8 +227,10 @@ const schema = new Schema<Model>()
     .with(m => m.BooleanProp, false)
     .build();
 ```
-
 </details>
+
+## Contributing to the project
+Please read our [Code of Conduct](CODE_OF_CONDUCT.md) and [Contribution guidelines](CONTRIBUTING.md)
 
 ## Resources
 * [Understanding JSON Schema](https://json-schema.org/understanding-json-schema/index.html)

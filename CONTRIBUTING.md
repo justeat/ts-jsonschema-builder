@@ -7,7 +7,7 @@ If you find a bug, have a feature request or even want to contribute an enhancem
 
 ## If you find what looks like a bug:
 
-  * Check the [issue tracker](./issues "Issues") to see if anyone else has reported the issue.
+  * Check the [issue tracker](/justeat/ts-jsonschema-builder/issues "Issues") to see if anyone else has reported the issue.
   * Make sure you are using the latest version of builder
   * If you are still having an issue, create an issue including:
     * Information you will need to reproduce and diagnose the problem
@@ -36,4 +36,4 @@ In a nutshell:
 license your work under the the terms of the Apache 2.0 license. A copy of this
 license is provided in the root of the repository.
 
-Please read our [Code of Conduct](./CODE_OF_CONDUCT.md)
+Please read our [Code of Conduct](CODE_OF_CONDUCT.md)
