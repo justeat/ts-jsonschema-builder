@@ -2,6 +2,7 @@
 
 This builder takes advantage of TypeScript [Generics](https://www.typescriptlang.org/docs/handbook/generics.html) to provide a Fluent JSON Schema builder, with full IntelliSense support. You don't need to worry about knowing the JSON Schema specification upfront, instead explore it while typing code.
 
+Builder is packaged as ECMAScript 5. This means it can be used in vanilla JS projects, but you will not get a rich IntelliSense support.
 
 ⚠ In beta, support is not complete. See below for what is supported.  
 V1 of the builder aims to implement Draft-V4
