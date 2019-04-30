@@ -1,7 +1,7 @@
 {
   "name": "ts-jsonschema-builder",
   "version": "0.1.0",
-  "description": "",
+  "description": "Fluent TypeScript JSON Schema Builder with IntelliSense support.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [

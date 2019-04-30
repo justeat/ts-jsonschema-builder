@@ -86,3 +86,4 @@ typings/
 # TypeScript
 *.js
 *.js.map
+dist/
