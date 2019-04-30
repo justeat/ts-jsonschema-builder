@@ -32,14 +32,14 @@ export class Schema<T> {
     if (typeof value === "number") return new NumberSchema({ type: "number", minimum: value, maximum: value });
     if (typeof value === "boolean") return new BooleanSchema({ type: "boolean", enum: [value] });
 
-    if (typeof value === "object" && value.type == "array") return value;
+    if (typeof value === "object" && value.type === "array") return value;
     if (typeof value === "object" && value.type === "string") return value;
     if (typeof value === "object" && value.type === "number") return value;
     if (typeof value === "object" && value.type === "boolean") return value;
 
     if (value instanceof Function) return new NumberSchema(value);
 
-    throw new Error(`Unsupported type. '${value.constructor.name}', '${typeof value}'`)
+    throw new Error(`Unsupported type. '${value.constructor.name}', '${typeof value}'`);
   }
 
   /**
@@ -132,7 +132,7 @@ export class Schema<T> {
     for ($member of invertedExpression) {
       $ref.properties = $ref.properties || {};
       if ($member.leaf) $ref.properties[$member.title] = Object.assign({}, normalizedSchema);
-      else $ref.properties[$member.title] = $ref.properties[$member.title] || { title: $member.title, type: "object" }
+      else $ref.properties[$member.title] = $ref.properties[$member.title] || { title: $member.title, type: "object" };
 
       if (normalizedSchema.required) {
         $ref.required = $ref.required ? Array.from(new Set([...$ref.required, $member.title])) : [$member.title];

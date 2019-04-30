@@ -3,21 +3,21 @@ import { should } from "chai";
 
 should();
 
-var ajv = new Ajv({ schemaId: "id" });
+const ajv = new Ajv({ schemaId: "id" });
 ajv.addMetaSchema(require("ajv/lib/refs/json-schema-draft-04.json"));
 
 export function assertValid(schema: Object, model: any) {
-    assert(true, schema, model);
+  assert(true, schema, model);
 }
 
 export function assertInvalid(schema: Object, model: any) {
-    assert(false, schema, model);
+  assert(false, schema, model);
 }
 
 export function assert(expected: boolean, schema: Object, model: any) {
-    // console.log("SCHEMA", JSON.stringify(schema));
+  // console.log("SCHEMA", JSON.stringify(schema));
 
-    const validator = ajv.compile(schema);
-    const isValid = validator(model);
-    isValid.should.be.eql(expected, JSON.stringify(validator.errors));
+  const validator = ajv.compile(schema);
+  const isValid = validator(model);
+  isValid.should.be.eql(expected, JSON.stringify(validator.errors));
 }

@@ -5,7 +5,7 @@
     "esModuleInterop": true,
     "sourceMap": true,
     "module": "commonjs",
-    "baseUrl": ".",
+    "baseUrl": "./src",
     "outDir": "./dist",
     "declaration": true,
     "types": [
@@ -15,8 +15,8 @@
     ],
     "paths": {
       "*": [
-        "types/*"
-      ],
+        "./*"
+      ]
     },
     "lib": [
       "esnext"

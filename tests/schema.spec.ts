@@ -7,8 +7,8 @@ import { assertValid, assertInvalid } from "./assertion";
 export interface RedeemRequest {
   card: {
     pan: number
-  },
-  type: string
+  };
+  type: string;
 }
 
 describe("Usage", () => {
@@ -28,7 +28,7 @@ describe("Usage", () => {
     };
 
     const schema = new Schema<Model>()
-      .with(function (m) { return m.StringProp }, /^[A-z]+\.[A-z]+$/)
+      .with(function (m) { return m.StringProp; }, /^[A-z]+\.[A-z]+$/)
       .with(m => m.NumberProp, x => x >= 10)
       .with(m => m.BooleanProp, false)
       .with(m => m.ArrayProp, new ArraySchema({
@@ -105,7 +105,7 @@ describe("EcmaScript5", () => {
     };
 
     const schema = new Schema<Model>()
-      .with(function (m) { return m.StringProp }, new StringSchema(function (x) { return x >= 3 }))
+      .with(function (m) { return m.StringProp; }, new StringSchema(function (x) { return x >= 3; }))
       .build();
 
     schema.should.have.property("$schema", "http://json-schema.org/draft-04/schema#");
