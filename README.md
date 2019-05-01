@@ -1,4 +1,4 @@
-# Fluent TypeScript JSON Schema Builder
+# Fluent TypeScript JSON Schema Builder [![Build Status](https://travis-ci.com/justeat/ts-jsonschema-builder.svg?branch=master)](https://travis-ci.com/justeat/ts-jsonschema-builder)
 
 This builder takes advantage of TypeScript [Generics](https://www.typescriptlang.org/docs/handbook/generics.html) to provide a Fluent JSON Schema builder, with full IntelliSense support. You don't need to worry about knowing the JSON Schema specification upfront, instead explore it while typing code.
 
