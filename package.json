@@ -9,7 +9,7 @@
   ],
   "scripts": {
     "build": "tsc",
-    "lint": "tslint -p .\\tsconfig.json",
+    "lint": "tslint -p tsconfig.json",
     "test": "mocha -r ts-node/register tests/**/*.spec.ts",
     "watch": "mocha -r ts-node/register tests/**/*.spec.ts --watch-extensions ts --watch"
   },
