@@ -1,6 +1,6 @@
 {
-  "name": "ts-jsonschema-builder",
-  "version": "0.1.0",
+  "name": "@justeat/ts-jsonschema-builder",
+  "version": "0.2.0",
   "description": "Fluent TypeScript JSON Schema Builder with IntelliSense support.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

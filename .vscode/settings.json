@@ -3,6 +3,8 @@
     "node_modules": true
   },
   "cSpell.words": [
+    "Combinator",
+    "combinators",
     "estree",
     "spec"
   ]

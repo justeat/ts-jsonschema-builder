@@ -7,7 +7,7 @@ Builder is packaged as ECMAScript 5. This means it can be used in vanilla JS pro
 ⚠ In beta, support is not complete. See below for what is supported.  
 V1 of the builder aims to implement Draft-V4
 
-![Builder demo](assets/ts-schema-demo.gif)
+![Builder demo](https://github.com/justeat/ts-jsonschema-builder/raw/master/assets/ts-schema-demo.gif)
 
 ```typescript
 const schema = new Schema<Model>()

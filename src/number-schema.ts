@@ -1,4 +1,4 @@
-import { ITypeSchema } from "./type-schema";
+import { ITypeSchema, TypeSchema } from "./type-schema";
 import { parseAsRange } from "./expression-parser";
 
 
@@ -34,14 +34,12 @@ export interface INumberSchema extends ITypeSchema<"number"> {
   value?: (model: number) => boolean;
 }
 
-export class NumberSchema implements INumberSchema {
+export class NumberSchema extends TypeSchema<"number">  {
   public readonly type = "number";
 
   public readonly multipleOf?: number;
   public readonly minimum?: number;
   public readonly maximum?: number;
-
-  public required: boolean = true;
 
   public readonly exclusiveMaximum: boolean;
   public readonly exclusiveMinimum: boolean;
@@ -49,10 +47,8 @@ export class NumberSchema implements INumberSchema {
   constructor(schema?: (model: number) => boolean);
   constructor(schema?: INumberSchema)
   constructor(schema?: any) {
+    super(schema);
     schema = schema || {};
-
-    this.required = typeof schema.required === "undefined" ? this.required : schema.required;
-    Object.defineProperty(this, "required", { enumerable: false, writable: true });
 
     let normalizedSchema: INumberSchema;
     if (schema instanceof Function) normalizedSchema = { value: schema };
@@ -64,7 +60,7 @@ export class NumberSchema implements INumberSchema {
       if (typeof range.min !== "undefined") this.minimum = range.min;
       if (typeof range.max !== "undefined") this.maximum = range.max;
       if (range.isMaxExclusive) this.exclusiveMaximum = true;
-      if (range.isMinExclusive) this.exclusiveMinimum  = true;
+      if (range.isMinExclusive) this.exclusiveMinimum = true;
     }
 
     if (typeof normalizedSchema.multipleOf !== "undefined") this.multipleOf = normalizedSchema.multipleOf;

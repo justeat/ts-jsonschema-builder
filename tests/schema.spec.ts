@@ -1,6 +1,6 @@
 import { describe, it } from "mocha";
 
-import { Schema, ArraySchema, StringSchema } from "../src";
+import { Schema, ArraySchema, StringSchema, AnyOf, NumberSchema, AllOf } from "../src";
 import { Model } from "./models";
 import { assertValid, assertInvalid } from "./assertion";
 
@@ -40,6 +40,37 @@ describe("Usage", () => {
 
     assertValid(schema, model);
 
+  });
+
+  it("Complex structure", () => {
+
+    const model: Model = {
+      ArrayProp: [150, 300, "abc.123", [false, true]]
+    };
+
+    const schema = new Schema<Model>()
+      .with(m => m.ArrayProp, new ArraySchema({
+        items: new AnyOf([
+          new StringSchema(/^[A-z]+\.[0-9]+$/),
+
+          new AllOf([
+            new NumberSchema({
+              multipleOf: 5,
+              minimum: 100
+            }),
+            new NumberSchema({
+              multipleOf: 3
+            })
+          ]),
+
+          new ArraySchema({
+            minItems: 2
+          })
+        ])
+      }))
+      .build();
+
+    assertValid(schema, model);
   });
 });
 

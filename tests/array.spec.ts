@@ -1,7 +1,7 @@
 
 import { testCase } from "./test-case";
 import { Model } from "./models";
-import { Schema, ArraySchema } from "../src";
+import { Schema, ArraySchema, NumberSchema, StringSchema, BooleanSchema, AnyOf } from "../src";
 import { assertValid, assertInvalid, assert } from "./assertion";
 
 /**
@@ -209,6 +209,22 @@ describe("Array", () => {
       assertValid(schema, model);
     });
 
+    it("Should pass if contains additional items and it is explicitly permitted", () => {
+
+      const model: Model = {
+        ArrayProp: [1, 2, 3]
+      };
+
+      const schema = new Schema<Model>()
+        .with(m => m.ArrayProp, new ArraySchema({
+          items: [1, 2],
+          additionalItems: true
+        }))
+        .build();
+
+      assertValid(schema, model);
+    });
+
     it("Should fail if contains additional items and it is explicitly restricted", () => {
 
       const model: Model = {
@@ -226,4 +242,70 @@ describe("Array", () => {
     });
   });
 
+  /**
+   * @see https://json-schema.org/understanding-json-schema/reference/array.html#list-validation
+   */
+  describe("List validation", () => {
+    it("Should pass when all items are matching specified number schema", () => {
+
+      const model: Model = {
+        ArrayProp: [2, 4, 6, 100]
+      };
+
+      const schema = new Schema<Model>()
+        .with(m => m.ArrayProp, new ArraySchema({
+          items: new NumberSchema({
+            "multipleOf": 2.0
+          })
+        }))
+        .build();
+
+      assertValid(schema, model);
+    });
+
+    it("Should pass when all items are matching specified string schema", () => {
+
+      const model: Model = {
+        ArrayProp: ["abc.123", "abc.def", "123.456"]
+      };
+
+      const schema = new Schema<Model>()
+        .with(m => m.ArrayProp, new ArraySchema({
+          items: new StringSchema(/^[A-z0-9]+\.[A-z0-9]+$/)
+        }))
+        .build();
+
+      assertValid(schema, model);
+    });
+
+    it("Should pass when all items are matching specified boolean schema", () => {
+
+      const model: Model = {
+        ArrayProp: [false, false, true]
+      };
+
+      const schema = new Schema<Model>()
+        .with(m => m.ArrayProp, new ArraySchema({
+          items: new BooleanSchema()
+        }))
+        .build();
+
+      assertValid(schema, model);
+    });
+
+    it("Should fail when one of items is matching specified schema", () => {
+
+      const model: Model = {
+        ArrayProp: [false, false, 1]
+      };
+
+      const schema = new Schema<Model>()
+        .with(m => m.ArrayProp, new ArraySchema({
+          items: new BooleanSchema()
+        }))
+        .build();
+
+      assertInvalid(schema, model);
+    });
+  });
 });

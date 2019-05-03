@@ -2,7 +2,7 @@ export class Model {
   public StringProp?: string;
   public NumberProp?: number;
   public BooleanProp?: boolean;
-  public ArrayProp?: Array<number>;
+  public ArrayProp?: Array<number | string | boolean | any[]>;
   public ObjProp?: Model2;
 }
 

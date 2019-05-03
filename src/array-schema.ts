@@ -1,4 +1,4 @@
-import { ITypeSchema } from "./type-schema";
+import { ITypeSchema, TypeSchema, PropertySchema } from "./type-schema";
 import { parseAsRange } from "./expression-parser";
 
 
@@ -37,8 +37,14 @@ export interface IArraySchema extends ITypeSchema<"array"> {
    *    items: [1, 2],
    *    additionalItems: false
    * }))
+   * @example
+   * new ArraySchema({
+   *    items: new NumberSchema({
+   *      "multipleOf": 2.0
+   *    })
+   * })
    */
-  items?: any[];
+  items?: any[] | TypeSchema<string | number | boolean>;
 
   /**
    * @description The additionalItems keyword controls whether it’s valid to have additional items in the array beyond what is defined in items.
@@ -47,20 +53,17 @@ export interface IArraySchema extends ITypeSchema<"array"> {
   additionalItems?: boolean;
 }
 
-export class ArraySchema {
+export class ArraySchema extends TypeSchema<"array"> {
   public readonly type = "array";
 
   public readonly minItems?: number;
   public readonly maxItems?: number;
   public readonly uniqueItems?: boolean;
-  public readonly items?: any[];
+  public readonly items?: any[] | PropertySchema;
   public readonly additionalItems?: boolean;
 
-  public required: boolean = true;
-
   constructor(schema: IArraySchema = {}) {
-    this.required = typeof schema.required === "undefined" ? this.required : schema.required;
-    Object.defineProperty(this, "required", { enumerable: false, writable: true });
+    super(schema);
 
     if (typeof schema.length !== "undefined") {
       const range = parseAsRange(schema.length);
@@ -74,11 +77,12 @@ export class ArraySchema {
     if (typeof schema.minItems !== "undefined") this.minItems = schema.minItems;
     if (typeof schema.uniqueItems !== "undefined") this.uniqueItems = schema.uniqueItems;
     if (typeof schema.additionalItems !== "undefined") this.additionalItems = schema.additionalItems;
-    if (typeof schema.items !== "undefined") this.items = schema.items.map(i => {
+    if (Array.isArray(schema.items)) this.items = schema.items.map(i => {
       return {
         type: typeof i,
         enum: [i]
       };
     });
+    if (schema.items && schema.items instanceof PropertySchema) this.items = schema.items.compile();
   }
 }
