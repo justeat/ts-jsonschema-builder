@@ -293,7 +293,7 @@ describe("Array", () => {
       assertValid(schema, model);
     });
 
-    it("Should fail when one of items is matching specified schema", () => {
+    it("Should fail when one item does not match specified boolean schema", () => {
 
       const model: Model = {
         ArrayProp: [false, false, 1]
