@@ -1,8 +1,9 @@
 import * as esprima from "esprima";
 import { MemberExpression, Identifier, ArrowFunctionExpression, ExpressionStatement, ReturnStatement } from "estree";
 
-import { StringSchema, ArraySchema, NumberSchema, BooleanSchema, INumberSchema, IBooleanSchema, IArraySchema } from "./";
-
+import { StringSchema, INumberSchema, IBooleanSchema, IArraySchema } from "./";
+import { parseSchema } from "./schema-parser";
+import { AnyOf } from "./combinators";
 
 export class Schema<T> {
   private schema: { $schema: string, properties: {}, type: string };
@@ -26,21 +27,15 @@ export class Schema<T> {
     return memberExpr;
   }
 
-  private parse(value: any): StringSchema | ArraySchema | NumberSchema | BooleanSchema {
-    if (value instanceof RegExp) return new StringSchema({ type: "string", pattern: value });
-    if (typeof value === "string") return new StringSchema({ type: "string", enum: [value] });
-    if (typeof value === "number") return new NumberSchema({ type: "number", minimum: value, maximum: value });
-    if (typeof value === "boolean") return new BooleanSchema({ type: "boolean", enum: [value] });
 
-    if (typeof value === "object" && value.type === "array") return value;
-    if (typeof value === "object" && value.type === "string") return value;
-    if (typeof value === "object" && value.type === "number") return value;
-    if (typeof value === "object" && value.type === "boolean") return value;
-
-    if (value instanceof Function) return new NumberSchema(value);
-
-    throw new Error(`Unsupported type. '${value.constructor.name}', '${typeof value}'`);
-  }
+  /**
+   * @description Specify schema for a string property
+   * @param {(model: T) => string} selector String property selector
+   * @param {SchemaCombinator} schema String schema combinator. Supported combinators: 'anyOf', 'allOf', 'oneOf', 'not'
+   * @example
+   * .with(m => m.StringProp, anyOf({...}));
+   */
+  with(selector: (model: T) => string, schema: AnyOf): Schema<T>;
 
   /**
    * @description Specify schema for a string property
@@ -93,7 +88,7 @@ export class Schema<T> {
    * @param {(model: T) => boolean} selector Boolean property selector
    * @param {boolean} schema The value is used to restrict boolean property.
    * @example
-   * .with(m => m.BooleanProp, 10);
+   * .with(m => m.BooleanProp, true);
    */
   with(selector: (model: T) => boolean, schema: boolean): Schema<T>;
 
@@ -127,7 +122,7 @@ export class Schema<T> {
     }
     invertedExpression[invertedExpression.length - 1].leaf = true;
 
-    const normalizedSchema = this.parse(schema);
+    const normalizedSchema = parseSchema(schema);
     let $ref: any = this.schema, $member;
     for ($member of invertedExpression) {
       $ref.properties = $ref.properties || {};
@@ -143,7 +138,18 @@ export class Schema<T> {
     return this;
   }
 
+  /**
+   * @description Returns schema as Object.
+   */
   public build(): Object {
     return this.schema;
   }
+
+  /**
+   * @description Returns schema JSON string.
+   */
+  public json(): Object {
+    return JSON.stringify(this.schema);
+  }
+
 }

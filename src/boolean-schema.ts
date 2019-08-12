@@ -1,4 +1,4 @@
-import { ITypeSchema } from "./type-schema";
+import { ITypeSchema, TypeSchema } from "./type-schema";
 
 export interface IBooleanSchema extends ITypeSchema<"boolean"> {
   readonly type?: "boolean";
@@ -10,18 +10,19 @@ export interface IBooleanSchema extends ITypeSchema<"boolean"> {
   enum?: boolean[];
 }
 
-export class BooleanSchema implements IBooleanSchema {
+export class BooleanSchema extends TypeSchema<"boolean"> {
   public readonly type = "boolean";
 
   public enum?: boolean[];
 
-  public required: boolean = true;
-
-  constructor(schema?: IBooleanSchema) {
+  constructor();
+  constructor(schema: boolean);
+  constructor(schema: IBooleanSchema);
+  constructor(schema?: any) {
+    super(schema);
     schema = schema || {};
-    this.required = typeof schema.required === "undefined" ? this.required : schema.required;
-    Object.defineProperty(this, "required", { enumerable: false, writable: true });
 
-    if (typeof schema.enum !== "undefined") this.enum = schema.enum;
+    if (typeof schema === "boolean") this.enum = [schema];
+    else if (typeof schema.enum !== "undefined") this.enum = schema.enum;
   }
 }

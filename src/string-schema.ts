@@ -1,5 +1,5 @@
 import { parseAsRange } from "./expression-parser";
-import { ITypeSchema } from "./type-schema";
+import { ITypeSchema, TypeSchema } from "./type-schema";
 
 export interface IStringSchema extends ITypeSchema<"string"> {
   readonly type?: "string";
@@ -46,7 +46,7 @@ export interface IStringSchema extends ITypeSchema<"string"> {
   enum?: string[];
 }
 
-export class StringSchema {
+export class StringSchema extends TypeSchema<"string">  {
   public readonly type = "string";
 
   public readonly format?: "date-time" | "email" | "hostname" | "ipv4" | "ipv6" | "uri";
@@ -55,17 +55,19 @@ export class StringSchema {
   public readonly maxLength?: number;
   enum?: string[];
 
-  public required: boolean = true;
-
-  constructor(schema?: (model: number) => boolean);
-  constructor(schema?: IStringSchema);
+  constructor();
+  constructor(schema: (model: number) => boolean);
+  constructor(schema: IStringSchema);
+  constructor(schema: RegExp);
+  constructor(schema: string);
   constructor(schema?: any) {
+    super(schema);
     schema = schema || {};
-    this.required = typeof schema.required === "undefined" ? this.required : schema.required;
-    Object.defineProperty(this, "required", { enumerable: false, writable: true });
 
     let normalizedSchema: IStringSchema;
-    if (schema instanceof Function) normalizedSchema = { length: schema };
+    if (schema instanceof RegExp) normalizedSchema = { pattern: schema };
+    else if (typeof schema === "string") normalizedSchema = { enum: [schema] };
+    else if (schema instanceof Function) normalizedSchema = { length: schema };
     else normalizedSchema = schema;
 
     if (typeof normalizedSchema.length !== "undefined") {
