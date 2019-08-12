@@ -95,7 +95,7 @@ describe("Combinators", () => {
       assertValid(schema, model2);
     });
 
-    it("Should fail when matching more then one of", () => {
+    it("Should fail when matching more than one of", () => {
       const invalidModel: Model = {
         NumberProp: 15
       };
