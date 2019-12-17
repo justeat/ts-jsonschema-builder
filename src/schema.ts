@@ -3,13 +3,16 @@ import { MemberExpression, Identifier, ArrowFunctionExpression, ExpressionStatem
 
 import { StringSchema, INumberSchema, IBooleanSchema, IArraySchema } from "./";
 import { parseSchema } from "./schema-parser";
-import { AnyOf } from "./combinators";
+import { AnyOf, Not, AllOf, OneOf } from "./combinators";
+import { TypeSchema } from "./type-schema";
 
-export class Schema<T> {
-  private schema: { $schema: string, properties: {}, type: string };
+export class Schema<T> extends TypeSchema<"object"> {
+  public additionalProperties: { $schema: string, properties: {}, type: string };
+  readonly type?: "object";
 
   constructor() {
-    this.schema = { $schema: "http://json-schema.org/draft-04/schema#", type: "object", properties: {} };
+    super({ type: "object" });
+    this.additionalProperties = { $schema: "http://json-schema.org/draft-04/schema#", type: "object", properties: {} };
   }
 
   private getMemberExpression(selector: (model: any) => any): MemberExpression {
@@ -27,6 +30,23 @@ export class Schema<T> {
     return memberExpr;
   }
 
+  /**
+   * @description Specify schema for a dictionary property
+   * @param {(model: T) => { [key: string]: TProp }} selector Dictionary property selector
+   * @param {Schema} schema Nested object schema
+   * @example
+   * .with(m => m.StringProp, new Schema<NestedModel>().with(...));
+   */
+  with<TProp>(selector: (model: T) => { [key: string]: TProp }, schema: Schema<TProp>): Schema<T>;
+
+  /**
+   * @description Specify schema for a dictionary property
+   * @param {(model: T) => { [key: string]: TProp }} selector Dictionary property selector
+   * @param {SchemaCombinator} schema Dictionary schema combinator. Supported combinators: 'anyOf', 'allOf', 'oneOf', 'not'
+   * @example
+   * .with(m => m.StringProp, anyOf(new Schema<NestedModel>().with(...), new Schema<NestedModel>().with(...)));
+   */
+  with<TProp>(selector: (model: T) => { [key: string]: TProp }, schema: AnyOf | OneOf | AllOf | Not): Schema<T>;
 
   /**
    * @description Specify schema for a string property
@@ -35,7 +55,8 @@ export class Schema<T> {
    * @example
    * .with(m => m.StringProp, anyOf({...}));
    */
-  with(selector: (model: T) => string, schema: AnyOf): Schema<T>;
+  with(selector: (model: T) => string, schema: AnyOf | OneOf | AllOf | Not): Schema<T>;
+
 
   /**
    * @description Specify schema for a string property
@@ -123,7 +144,7 @@ export class Schema<T> {
     invertedExpression[invertedExpression.length - 1].leaf = true;
 
     const normalizedSchema = parseSchema(schema);
-    let $ref: any = this.schema, $member;
+    let $ref: any = this.additionalProperties, $member;
     for ($member of invertedExpression) {
       $ref.properties = $ref.properties || {};
       if ($member.leaf) $ref.properties[$member.title] = Object.assign({}, normalizedSchema);
@@ -142,14 +163,14 @@ export class Schema<T> {
    * @description Returns schema as Object.
    */
   public build(): Object {
-    return this.schema;
+    return this.additionalProperties;
   }
 
   /**
    * @description Returns schema JSON string.
    */
   public json(): Object {
-    return JSON.stringify(this.schema);
+    return JSON.stringify(this.additionalProperties);
   }
 
 }

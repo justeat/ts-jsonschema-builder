@@ -21,6 +21,7 @@ export class PropertySchema implements ISchema {
     return Object.assign({}, this);
   }
 }
+
 export class TypeSchema<T> extends PropertySchema implements ITypeSchema<T> {
   readonly type?: T;
 

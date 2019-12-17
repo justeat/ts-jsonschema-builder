@@ -4,6 +4,16 @@ export class Model {
   public BooleanProp?: boolean;
   public ArrayProp?: Array<number | string | boolean | any[]>;
   public ObjProp?: Model2;
+  public DictionaryProp?: {
+    [key: string]: DictionaryPropModel
+  };
+}
+
+export class DictionaryPropModel {
+  DictionaryChildStringProp?: string;
+  DictionaryChildNumberProp?: number;
+  DictionaryChildArrayProp?: number[];
+  DictionaryChildBoolProp?: boolean;
 }
 
 export class Model2 {

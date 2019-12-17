@@ -4,13 +4,6 @@ import { Schema, ArraySchema, StringSchema, AnyOf, NumberSchema, AllOf } from ".
 import { Model } from "./models";
 import { assertValid, assertInvalid } from "./assertion";
 
-export interface RedeemRequest {
-  card: {
-    pan: number
-  };
-  type: string;
-}
-
 describe("Usage", () => {
 
   it("Complete picture", () => {
