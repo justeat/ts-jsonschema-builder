@@ -14,7 +14,7 @@ describe("Array", () => {
    */
   describe("Type", () => {
 
-    it("Should pass when property type matches ", () => {
+    it("Should pass when property type matches", () => {
 
       const model: Model = {
         ArrayProp: []

@@ -6,7 +6,7 @@ import { assertValid, assertInvalid } from "./assertion";
 
 describe("Dictionary", () => {
 
-  it("Should pass when nested object property satisfies schema ", () => {
+  it("Should pass when nested object property satisfies schema", () => {
 
     const model: Model = {
       DictionaryProp: {
@@ -41,7 +41,7 @@ describe("Dictionary", () => {
 
   });
 
-  it("Should fail when nested object property violates string schema ", () => {
+  it("Should fail when nested object property violates string schema", () => {
 
     const model: Model = {
       DictionaryProp: {
@@ -62,7 +62,7 @@ describe("Dictionary", () => {
 
   });
 
-  it("Should fail when nested object property violates number schema ", () => {
+  it("Should fail when nested object property violates number schema", () => {
 
     const model: Model = {
       DictionaryProp: {
@@ -83,7 +83,7 @@ describe("Dictionary", () => {
 
   });
 
-  it("Should fail when nested object property violates array schema ", () => {
+  it("Should fail when nested object property violates array schema", () => {
 
     const model: Model = {
       DictionaryProp: {
@@ -107,7 +107,7 @@ describe("Dictionary", () => {
 
   });
 
-  it("Should fail when nested object property violates boolean schema ", () => {
+  it("Should fail when nested object property violates boolean schema", () => {
 
     const model: Model = {
       DictionaryProp: {
@@ -120,9 +120,7 @@ describe("Dictionary", () => {
     const schema = new Schema<Model>()
       .with(m => m.DictionaryProp,
         new Schema<DictionaryPropModel>()
-          .with(x => x.DictionaryChildBoolProp, new BooleanSchema({
-            required: true
-          }))
+          .with(x => x.DictionaryChildBoolProp, new BooleanSchema())
       )
       .build();
 
@@ -130,7 +128,7 @@ describe("Dictionary", () => {
 
   });
 
-  it("Should fail when nested object property violates combinator schema ", () => {
+  it("Should fail when nested object property violates combinator schema", () => {
 
     const model: Model = {
       DictionaryProp: {
