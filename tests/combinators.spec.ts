@@ -1,16 +1,9 @@
 import { describe, it } from "mocha";
 
 import { Schema, StringSchema, NumberSchema, BooleanSchema } from "../src";
-import { Model } from "./models";
+import { Model, DictionaryPropModel } from "./models";
 import { assertValid, assertInvalid } from "./assertion";
 import { AnyOf, OneOf, AllOf, Not } from "../src/combinators";
-
-export interface RedeemRequest {
-  card: {
-    pan: number
-  };
-  type: string;
-}
 
 /**
  * @see https://json-schema.org/understanding-json-schema/reference/combining.html
@@ -64,6 +57,46 @@ describe("Combinators", () => {
         .build();
 
       assertInvalid(schema, invalidModel);
+    });
+
+    it("Should pass when matching any of for nested objects", () => {
+      const model: Model = {
+        DictionaryProp: {
+          "KeyA": {
+            DictionaryChildNumberProp: 100
+          }
+        }
+      };
+
+      const nestedSchema1 = new Schema<DictionaryPropModel>().with(x => x.DictionaryChildNumberProp, x => x < 150);
+      const nestedSchema2 = new Schema<DictionaryPropModel>().with(x => x.DictionaryChildNumberProp, x => x < 50);
+
+      const schema = new Schema<Model>()
+        .with(m => m.DictionaryProp, new AnyOf([nestedSchema1, nestedSchema2]))
+        .build();
+
+
+      assertValid(schema, model);
+    });
+
+    it("Should fail when not matching any of for nested objects", () => {
+      const model: Model = {
+        DictionaryProp: {
+          "KeyA": {
+            DictionaryChildNumberProp: 100
+          }
+        }
+      };
+
+      const nestedSchema1 = new Schema<DictionaryPropModel>().with(x => x.DictionaryChildNumberProp, x => x > 150);
+      const nestedSchema2 = new Schema<DictionaryPropModel>().with(x => x.DictionaryChildNumberProp, x => x < 50);
+
+      const schema = new Schema<Model>()
+        .with(m => m.DictionaryProp, new AnyOf([nestedSchema1, nestedSchema2]))
+        .build();
+
+
+      assertInvalid(schema, model);
     });
   });
 
@@ -132,6 +165,67 @@ describe("Combinators", () => {
 
       assertInvalid(schema, invalidModel);
     });
+
+    it("Should pass when matching strictly one of for nested objects", () => {
+      const model: Model = {
+        DictionaryProp: {
+          "KeyA": {
+            DictionaryChildNumberProp: 100
+          }
+        }
+      };
+
+      const nestedSchema1 = new Schema<DictionaryPropModel>().with(x => x.DictionaryChildNumberProp, x => x < 150);
+      const nestedSchema2 = new Schema<DictionaryPropModel>().with(x => x.DictionaryChildNumberProp, x => x < 50);
+
+      const schema = new Schema<Model>()
+        .with(m => m.DictionaryProp, new OneOf([nestedSchema1, nestedSchema2]))
+        .build();
+
+
+      assertValid(schema, model);
+    });
+
+    it("Should fail when matching more than one of for nested objects", () => {
+      const model: Model = {
+        DictionaryProp: {
+          "KeyA": {
+            DictionaryChildNumberProp: 100
+          }
+        }
+      };
+
+      const nestedSchema1 = new Schema<DictionaryPropModel>().with(x => x.DictionaryChildNumberProp, x => x < 150);
+      const nestedSchema2 = new Schema<DictionaryPropModel>().with(x => x.DictionaryChildNumberProp, x => x > 50);
+
+      const schema = new Schema<Model>()
+        .with(m => m.DictionaryProp, new OneOf([nestedSchema1, nestedSchema2]))
+        .build();
+
+
+      assertInvalid(schema, model);
+    });
+
+    it("Should fail when matching none of for nested objects", () => {
+      const model: Model = {
+        DictionaryProp: {
+          "KeyA": {
+            DictionaryChildNumberProp: 100
+          }
+        }
+      };
+
+      const nestedSchema1 = new Schema<DictionaryPropModel>().with(x => x.DictionaryChildNumberProp, x => x > 150);
+      const nestedSchema2 = new Schema<DictionaryPropModel>().with(x => x.DictionaryChildNumberProp, x => x < 50);
+
+      const schema = new Schema<Model>()
+        .with(m => m.DictionaryProp, new OneOf([nestedSchema1, nestedSchema2]))
+        .build();
+
+
+      assertInvalid(schema, model);
+    });
+
   });
 
   /**
@@ -180,6 +274,46 @@ describe("Combinators", () => {
       assertInvalid(schema, invalidModel1);
       assertInvalid(schema, invalidModel2);
     });
+
+    it("Should pass when matching all of nested objects", () => {
+      const model: Model = {
+        DictionaryProp: {
+          "KeyA": {
+            DictionaryChildNumberProp: 100
+          }
+        }
+      };
+
+      const nestedSchema1 = new Schema<DictionaryPropModel>().with(x => x.DictionaryChildNumberProp, x => x < 150);
+      const nestedSchema2 = new Schema<DictionaryPropModel>().with(x => x.DictionaryChildNumberProp, x => x > 50);
+
+      const schema = new Schema<Model>()
+        .with(m => m.DictionaryProp, new AllOf([nestedSchema1, nestedSchema2]))
+        .build();
+
+
+      assertValid(schema, model);
+    });
+
+    it("Should fail when not matching all of nested objects", () => {
+      const model: Model = {
+        DictionaryProp: {
+          "KeyA": {
+            DictionaryChildNumberProp: 100
+          }
+        }
+      };
+
+      const nestedSchema1 = new Schema<DictionaryPropModel>().with(x => x.DictionaryChildNumberProp, x => x < 150);
+      const nestedSchema2 = new Schema<DictionaryPropModel>().with(x => x.DictionaryChildNumberProp, x => x < 50);
+
+      const schema = new Schema<Model>()
+        .with(m => m.DictionaryProp, new AllOf([nestedSchema1, nestedSchema2]))
+        .build();
+
+
+      assertInvalid(schema, model);
+    });
   });
 
 
@@ -214,6 +348,42 @@ describe("Combinators", () => {
         .build();
 
       assertInvalid(schema, invalidModel);
+    });
+
+    it("Should pass when not matching nested object", () => {
+      const model: Model = {
+        DictionaryProp: {
+          "KeyA": {
+            DictionaryChildNumberProp: 100
+          }
+        }
+      };
+
+      const nestedSchema = new Schema<DictionaryPropModel>().with(x => x.DictionaryChildNumberProp, x => x < 50);
+
+      const schema = new Schema<Model>()
+        .with(m => m.DictionaryProp, new Not(nestedSchema))
+        .build();
+
+      assertValid(schema, model);
+    });
+
+    it("Should fail when matching nested object", () => {
+      const model: Model = {
+        DictionaryProp: {
+          "KeyA": {
+            DictionaryChildNumberProp: 49
+          }
+        }
+      };
+
+      const nestedSchema = new Schema<DictionaryPropModel>().with(x => x.DictionaryChildNumberProp, x => x < 50);
+
+      const schema = new Schema<Model>()
+        .with(m => m.DictionaryProp, new Not(nestedSchema))
+        .build();
+
+      assertInvalid(schema, model);
     });
   });
 });

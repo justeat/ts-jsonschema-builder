@@ -3,7 +3,6 @@
 * [ ] New feature (non-breaking change which adds functionality)
 * [ ] Breaking change (fix or feature that would cause existing functionality to change)
 
-
 ### All Submissions:
 
 * [ ] Have you followed the guidelines in our Contributing document?
@@ -19,4 +18,4 @@
 
 * [ ] Have you added an explanation of what your changes do and why you'd like us to include them?
 * [ ] Have you written new tests for your core changes, as applicable?
-* [ ] Have you successfully ran tests with your changes locally?
+* [ ] Have you successfully run tests with your changes locally?

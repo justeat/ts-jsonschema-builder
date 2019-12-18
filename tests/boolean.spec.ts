@@ -9,7 +9,7 @@ describe("Exact Bool validation", () => {
    */
   describe("Type", () => {
 
-    it("Should pass when property type matches ", () => {
+    it("Should pass when property type matches", () => {
 
       const model: Model = {
         BooleanProp: true
@@ -60,7 +60,7 @@ describe("Exact Bool validation", () => {
     });
   });
 
-  it("Should pass when Bool matches exactly ", () => {
+  it("Should pass when Bool matches exactly", () => {
 
     const model: Model = {
       BooleanProp: false
@@ -73,7 +73,7 @@ describe("Exact Bool validation", () => {
     assertValid(schema, model);
   });
 
-  it("Should fail when Bool doesn't match exactly ", () => {
+  it("Should fail when Bool doesn't match exactly", () => {
 
     const model: Model = {
       BooleanProp: false

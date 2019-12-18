@@ -1,5 +1,4 @@
-import { StringSchema, NumberSchema, BooleanSchema } from "./";
-import { PropertySchema } from "type-schema";
+import { StringSchema, NumberSchema, BooleanSchema, PropertySchema } from "./";
 
 export function parseSchema(value: any): PropertySchema {
   if (value instanceof RegExp) return new StringSchema({ type: "string", pattern: value });
@@ -16,6 +15,7 @@ export function parseSchema(value: any): PropertySchema {
   if (typeof value === "object" && value.constructor.name === "OneOf") return value;
   if (typeof value === "object" && value.constructor.name === "AllOf") return value;
   if (typeof value === "object" && value.constructor.name === "Not") return value;
+  if (typeof value === "object" && value.constructor.name === "Schema") return value;
 
   if (value instanceof Function) return new NumberSchema(value);
 

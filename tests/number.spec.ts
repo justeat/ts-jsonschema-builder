@@ -13,7 +13,7 @@ describe("Number", () => {
    */
   describe("Type", () => {
 
-    it("Should pass when property type matches ", () => {
+    it("Should pass when property type matches", () => {
 
       const model: Model = {
         NumberProp: 123
@@ -66,7 +66,7 @@ describe("Number", () => {
 
   describe("Exact number validation", () => {
 
-    it("Should pass when number matches exactly ", () => {
+    it("Should pass when number matches exactly", () => {
 
       const model: Model = {
         NumberProp: 10

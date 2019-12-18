@@ -4,8 +4,8 @@ This builder takes advantage of TypeScript [Generics](https://www.typescriptlang
 
 Builder is packaged as ECMAScript 5. This means it can be used in vanilla JS projects, but you will not get a rich IntelliSense support.
 
-⚠ In beta, support is not complete. See below for what is supported.  
-V1 of the builder aims to implement Draft-V4
+⚠ Builder aims to implement Draft-V4
+See [wiki](https://github.com/justeat/ts-jsonschema-builder/wiki) for all supported features
 
 ![Builder demo](https://github.com/justeat/ts-jsonschema-builder/raw/master/assets/ts-schema-demo.gif)
 

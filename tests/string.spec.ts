@@ -11,7 +11,7 @@ describe("String", () => {
    */
   describe("Type", () => {
 
-    it("Should pass when string property type matches ", () => {
+    it("Should pass when string property type matches", () => {
 
       const model: Model = {
         StringProp: "abc.def"
@@ -65,7 +65,7 @@ describe("String", () => {
 
   describe("Exact string validation", () => {
 
-    it("Should pass when string matches exactly ", () => {
+    it("Should pass when string matches exactly", () => {
 
       const model: Model = {
         StringProp: "abc.def"

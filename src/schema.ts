@@ -3,16 +3,19 @@ import { MemberExpression, Identifier, ArrowFunctionExpression, ExpressionStatem
 
 import { StringSchema, INumberSchema, IBooleanSchema, IArraySchema } from "./";
 import { parseSchema } from "./schema-parser";
-import { AnyOf } from "./combinators";
+import { AnyOf, Not, AllOf, OneOf } from "./combinators";
+import { TypeSchema, ITypeSchema } from "./type-schema";
 
-export class Schema<T> {
-  private schema: { $schema: string, properties: {}, type: string };
+export class Schema<T> extends TypeSchema<"object"> {
+  public additionalProperties: { $schema?: string, properties?: {}, additionalProperties?: {} } & ITypeSchema<"object">;
+  readonly type?: "object";
 
   constructor() {
-    this.schema = { $schema: "http://json-schema.org/draft-04/schema#", type: "object", properties: {} };
+    super({ type: "object" });
+    this.additionalProperties = { type: "object", properties: {} };
   }
 
-  private getMemberExpression(selector: (model: any) => any): MemberExpression {
+  private getExpression(selector: (model: any) => any): Identifier | MemberExpression {
 
     const expression = esprima.parseModule(selector.toString().replace(/function \(?(\w)\)?/, "$1 =>"));
     const es = expression.body[0] as ExpressionStatement;
@@ -27,6 +30,23 @@ export class Schema<T> {
     return memberExpr;
   }
 
+  /**
+   * @description Specify schema for a dictionary property
+   * @param {(model: T) => { [key: string]: TProp }} selector Dictionary property selector
+   * @param {Schema} schema Nested object schema
+   * @example
+   * .with(m => m.StringProp, new Schema<NestedModel>().with(...));
+   */
+  with<TProp>(selector: (model: T) => { [key: string]: TProp }, schema: Schema<TProp>): Schema<T>;
+
+  /**
+   * @description Specify schema for a dictionary property
+   * @param {(model: T) => { [key: string]: TProp }} selector Dictionary property selector
+   * @param {SchemaCombinator} schema Dictionary schema combinator. Supported combinators: 'anyOf', 'allOf', 'oneOf', 'not'
+   * @example
+   * .with(m => m.StringProp, anyOf(new Schema<NestedModel>().with(...), new Schema<NestedModel>().with(...)));
+   */
+  with<TProp>(selector: (model: T) => { [key: string]: TProp }, schema: AnyOf | OneOf | AllOf | Not): Schema<T>;
 
   /**
    * @description Specify schema for a string property
@@ -35,7 +55,8 @@ export class Schema<T> {
    * @example
    * .with(m => m.StringProp, anyOf({...}));
    */
-  with(selector: (model: T) => string, schema: AnyOf): Schema<T>;
+  with(selector: (model: T) => string, schema: AnyOf | OneOf | AllOf | Not): Schema<T>;
+
 
   /**
    * @description Specify schema for a string property
@@ -110,29 +131,34 @@ export class Schema<T> {
    */
   with(selector: (model: T) => any[] | undefined, schema: IArraySchema): Schema<T>;
   with(selector: any, schema: any): any {
-    const memberExpr = this.getMemberExpression(selector);
-
-    const invertedExpression: { title: string, leaf?: boolean }[] = [];
-    let nextObj: MemberExpression | null = memberExpr;
-    while (nextObj) {
-      invertedExpression.unshift({
-        title: (nextObj.property as Identifier).name
-      });
-      nextObj = nextObj.object.type === "MemberExpression" ? nextObj.object as MemberExpression : null;
-    }
-    invertedExpression[invertedExpression.length - 1].leaf = true;
+    const expression = this.getExpression(selector);
 
     const normalizedSchema = parseSchema(schema);
-    let $ref: any = this.schema, $member;
-    for ($member of invertedExpression) {
-      $ref.properties = $ref.properties || {};
-      if ($member.leaf) $ref.properties[$member.title] = Object.assign({}, normalizedSchema);
-      else $ref.properties[$member.title] = $ref.properties[$member.title] || { title: $member.title, type: "object" };
 
-      if (normalizedSchema.required) {
-        $ref.required = $ref.required ? Array.from(new Set([...$ref.required, $member.title])) : [$member.title];
+    if (expression.type === "Identifier") {
+      this.additionalProperties = normalizedSchema.compile();
+    } else {
+      const invertedExpression: { title: string, leaf?: boolean }[] = [];
+      let nextObj: MemberExpression | null = expression;
+      while (nextObj) {
+        invertedExpression.unshift({
+          title: (nextObj.property as Identifier).name
+        });
+        nextObj = nextObj.object.type === "MemberExpression" ? nextObj.object as MemberExpression : null;
       }
-      $ref = $ref.properties[$member.title];
+      invertedExpression[invertedExpression.length - 1].leaf = true;
+
+      let $ref: any = this.additionalProperties, $member;
+      for ($member of invertedExpression) {
+        $ref.properties = $ref.properties || {};
+        if ($member.leaf) $ref.properties[$member.title] = Object.assign({}, normalizedSchema);
+        else $ref.properties[$member.title] = $ref.properties[$member.title] || { title: $member.title, type: "object" };
+
+        if (normalizedSchema.required) {
+          $ref.required = $ref.required ? Array.from(new Set([...$ref.required, $member.title])) : [$member.title];
+        }
+        $ref = $ref.properties[$member.title];
+      }
     }
 
     return this;
@@ -142,14 +168,15 @@ export class Schema<T> {
    * @description Returns schema as Object.
    */
   public build(): Object {
-    return this.schema;
+    this.additionalProperties.$schema = "http://json-schema.org/draft-04/schema#";
+    return this.additionalProperties;
   }
 
   /**
    * @description Returns schema JSON string.
    */
-  public json(): Object {
-    return JSON.stringify(this.schema);
+  public json(): string {
+    return JSON.stringify(this.build());
   }
 
 }
