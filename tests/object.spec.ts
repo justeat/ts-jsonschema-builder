@@ -1,7 +1,7 @@
 import { describe, it } from "mocha";
 
 import { Schema, ArraySchema, StringSchema, AnyOf, NumberSchema, AllOf, BooleanSchema, OneOf } from "../src";
-import { Model, DictionaryPropModel } from "./models";
+import { Model, DictionaryPropModel, NestedDictionaryPropModel } from "./models";
 import { assertValid, assertInvalid } from "./assertion";
 
 describe("Dictionary", () => {
@@ -153,4 +153,55 @@ describe("Dictionary", () => {
 
   });
 
+
+  it("Should pass when double nested dictionary object is valid", () => {
+
+    const model: Model = {
+      NestedDictionaryProp: {
+        "KeyA": {
+          "KeyA1": {
+            DictionaryChildNumberProp: 50
+          }
+        }
+      }
+    };
+
+
+    const schema = new Schema<Model>()
+      .with(x => x.NestedDictionaryProp,
+        new Schema<NestedDictionaryPropModel>().with(x => x,
+          new Schema<DictionaryPropModel>()
+            .with(x => x.DictionaryChildNumberProp, x => x < 100)
+        )).build();
+
+
+    assertValid(schema, model);
+
+  });
+
+
+  it("Should fail when double nested dictionary object is invalid", () => {
+
+    const model: Model = {
+      NestedDictionaryProp: {
+        "KeyA": {
+          "KeyA1": {
+            DictionaryChildNumberProp: 500
+          }
+        }
+      }
+    };
+
+
+    const schema = new Schema<Model>()
+      .with(x => x.NestedDictionaryProp,
+        new Schema<NestedDictionaryPropModel>().with(x => x,
+          new Schema<DictionaryPropModel>()
+            .with(x => x.DictionaryChildNumberProp, x => x < 100)
+        )).build();
+
+
+    assertInvalid(schema, model);
+
+  });
 });

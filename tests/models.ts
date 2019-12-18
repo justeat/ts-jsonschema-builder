@@ -7,6 +7,13 @@ export class Model {
   public DictionaryProp?: {
     [key: string]: DictionaryPropModel
   };
+  public NestedDictionaryProp?: {
+    [key: string]: NestedDictionaryPropModel
+  };
+}
+
+export class NestedDictionaryPropModel {
+  [key: string]: DictionaryPropModel
 }
 
 export class DictionaryPropModel {

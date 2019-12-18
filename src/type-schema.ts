@@ -8,7 +8,7 @@ export interface ITypeSchema<T> extends ISchema {
 
 export class PropertySchema implements ISchema {
   public isSchema = true;
-  required?: boolean = true;
+  public required?: boolean = true;
 
   constructor(schema: ISchema) {
     schema = schema || {};

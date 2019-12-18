@@ -18,18 +18,18 @@
   ],
   "license": "Apache-2.0",
   "dependencies": {
-    "@types/node": "^12.7.0",
-    "esprima": "^4.0.1",
-    "typescript": "^3.5.3"
+    "esprima": "^4.0.1"
   },
   "devDependencies": {
-    "@types/chai": "^4.1.7",
+    "@types/node": "^12.12.20",
+    "typescript": "^3.7.3",
+    "@types/chai": "^4.2.7",
     "@types/esprima": "^4.0.2",
     "@types/mocha": "^5.2.7",
     "ajv": "^6.10.2",
     "chai": "^4.2.0",
-    "mocha": "^6.2.0",
+    "mocha": "^6.2.2",
     "ts-mocha": "^6.0.0",
-    "tslint": "^5.18.0"
+    "tslint": "^5.20.1"
   }
 }
