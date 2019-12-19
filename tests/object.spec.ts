@@ -3,6 +3,7 @@ import { describe, it } from "mocha";
 import { Schema, ArraySchema, StringSchema, AnyOf, NumberSchema, AllOf, BooleanSchema, OneOf } from "../src";
 import { Model, DictionaryPropModel, NestedDictionaryPropModel } from "./models";
 import { assertValid, assertInvalid } from "./assertion";
+import { expect } from "chai";
 
 describe("Dictionary", () => {
 
@@ -47,6 +48,7 @@ describe("Dictionary", () => {
       DictionaryProp: {
         "Key1": {
           DictionaryChildStringProp: "aaa",
+          DictionaryChildNumberProp: 50
         }
       }
     };
@@ -55,11 +57,30 @@ describe("Dictionary", () => {
       .with(m => m.DictionaryProp,
         new Schema<DictionaryPropModel>()
           .with(x => x.DictionaryChildStringProp, /^[A-z]+\.[A-z]+$/)
+          .with(x => x.DictionaryChildNumberProp, x => x > 100)
       )
       .build();
 
-    assertInvalid(schema, model);
+    const errors = assertInvalid(schema, model);
+    expect(errors.length).to.be.eq(2);
 
+  });
+
+  it("Should fail with multiple errors", () => {
+
+    const model: Model = {
+      NumberProp: 50,
+      StringProp: "aaa"
+    };
+
+    const schema = new Schema<Model>()
+      .with(x => x.StringProp, /^[A-z]+\.[A-z]+$/)
+      .with(x => x.NumberProp, x => x > 100)
+      .build();
+
+    const errors = assertInvalid(schema, model);
+
+    expect(errors.length).to.be.eq(2);
   });
 
   it("Should fail when nested object property violates number schema", () => {

@@ -1,5 +1,6 @@
 import { ITypeSchema, TypeSchema, PropertySchema } from "./type-schema";
 import { parseAsRange } from "./expression-parser";
+import { Schema } from "./schema";
 
 
 export interface IArraySchema extends ITypeSchema<"array"> {
@@ -83,6 +84,7 @@ export class ArraySchema extends TypeSchema<"array"> {
         enum: [i]
       };
     });
-    if (schema.items && schema.items instanceof PropertySchema) this.items = schema.items.compile();
+    if (schema.items && schema.items instanceof Schema) this.items = schema.items.compile().additionalProperties as PropertySchema;
+    else if (schema.items && schema.items instanceof PropertySchema) this.items = schema.items.compile();
   }
 }

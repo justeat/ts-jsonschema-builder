@@ -4,6 +4,7 @@ export class Model {
   public BooleanProp?: boolean;
   public ArrayProp?: Array<number | string | boolean | any[]>;
   public ObjProp?: Model2;
+  public ObjArrayProp?: Array<Model2>;
   public DictionaryProp?: {
     [key: string]: DictionaryPropModel
   };
