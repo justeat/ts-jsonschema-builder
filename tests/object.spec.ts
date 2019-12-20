@@ -1,8 +1,9 @@
 import { describe, it } from "mocha";
 
 import { Schema, ArraySchema, StringSchema, AnyOf, NumberSchema, AllOf, BooleanSchema, OneOf } from "../src";
-import { Model, DictionaryPropModel, NestedDictionaryPropModel } from "./models";
+import { Model, DictionaryPropModel, NestedDictionaryPropModel, Model3 } from "./models";
 import { assertValid, assertInvalid } from "./assertion";
+import { expect } from "chai";
 
 describe("Dictionary", () => {
 
@@ -13,12 +14,18 @@ describe("Dictionary", () => {
         "Key1": {
           DictionaryChildStringProp: "aaa.bbb",
           DictionaryChildNumberProp: 9,
-          DictionaryChildArrayProp: [1, 2, 3]
+          DictionaryChildArrayProp: [1, 2, 3],
+          DictionaryChildObjectArrayProp: [{
+            Lvl3StrProp: "aaaaa"
+          }]
         },
         "Key2": {
           DictionaryChildStringProp: "abc",
           DictionaryChildNumberProp: 49,
-          DictionaryChildArrayProp: [1, 2, 3]
+          DictionaryChildArrayProp: [1, 2, 3],
+          DictionaryChildObjectArrayProp: [{
+            Lvl3StrProp: "bbbbb"
+          }]
         }
       }
     };
@@ -34,6 +41,16 @@ describe("Dictionary", () => {
             length: x => x < 5,
             uniqueItems: true
           }))
+          .with(x => x.DictionaryChildObjectArrayProp, new ArraySchema({
+            length: x => x >= 1,
+            uniqueItems: true,
+            items: new Schema<Model3>().with(
+              x => x.Lvl3StrProp,
+              new StringSchema({
+                minLength: 5
+              })
+            )
+          }))
       )
       .build();
 
@@ -47,6 +64,12 @@ describe("Dictionary", () => {
       DictionaryProp: {
         "Key1": {
           DictionaryChildStringProp: "aaa",
+          DictionaryChildNumberProp: 50,
+          DictionaryChildObjectArrayProp: [{
+            Lvl3StrProp: "aaaaa"
+          }, {
+            Lvl3StrProp: "aaaaa"
+          }]
         }
       }
     };
@@ -55,10 +78,60 @@ describe("Dictionary", () => {
       .with(m => m.DictionaryProp,
         new Schema<DictionaryPropModel>()
           .with(x => x.DictionaryChildStringProp, /^[A-z]+\.[A-z]+$/)
+          .with(x => x.DictionaryChildNumberProp, x => x > 100)
+          .with(x => x.DictionaryChildObjectArrayProp, new ArraySchema({
+            length: x => x >= 1,
+            uniqueItems: true,
+            items: new Schema<Model3>().with(
+              x => x.Lvl3StrProp,
+              new StringSchema({
+                minLength: 5
+              })
+            )
+          }))
       )
       .build();
 
-    assertInvalid(schema, model);
+    const errors = assertInvalid(schema, model);
+    expect(errors.length).to.be.eq(3);
+
+    const patternError = errors.find(err => err.keyword === "pattern");
+    expect(patternError).to.not.be.null;
+    expect(patternError.dataPath).to.be.eq(".DictionaryProp['Key1'].DictionaryChildStringProp");
+
+    const exclusiveMinimumError = errors.find(err => err.keyword === "exclusiveMinimum");
+    expect(exclusiveMinimumError).to.not.be.null;
+    expect(exclusiveMinimumError.dataPath).to.be.eq(".DictionaryProp['Key1'].DictionaryChildNumberProp");
+
+    const uniqueItemsError = errors.find(err => err.keyword === "uniqueItems");
+    expect(uniqueItemsError).to.not.be.null;
+    expect(uniqueItemsError.dataPath).to.be.eq(".DictionaryProp['Key1'].DictionaryChildObjectArrayProp");
+
+  });
+
+  it("Should fail with multiple errors", () => {
+
+    const model: Model = {
+      NumberProp: 50,
+      StringProp: "aaa"
+    };
+
+    const schema = new Schema<Model>()
+      .with(x => x.StringProp, /^[A-z]+\.[A-z]+$/)
+      .with(x => x.NumberProp, x => x > 100)
+      .build();
+
+    const errors = assertInvalid(schema, model);
+
+    expect(errors.length).to.be.eq(2);
+
+    const patternError = errors.find(err => err.keyword === "pattern");
+    expect(patternError).to.not.be.null;
+    expect(patternError.dataPath).to.be.eq(".StringProp");
+
+    const exclusiveMinimumError = errors.find(err => err.keyword === "exclusiveMinimum");
+    expect(exclusiveMinimumError).to.not.be.null;
+    expect(exclusiveMinimumError.dataPath).to.be.eq(".NumberProp");
 
   });
 

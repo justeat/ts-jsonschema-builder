@@ -43,7 +43,7 @@ export interface IStringSchema extends ITypeSchema<"string"> {
    * @description The enum keyword is used to restrict a value to a fixed set of values. It must be an array with at least one element, where each element is unique.
    * @see https://json-schema.org/understanding-json-schema/reference/generic.html#enumerated-values
    */
-  enum?: string[];
+  enum?: Array<string>;
 }
 
 export class StringSchema extends TypeSchema<"string">  {
@@ -53,7 +53,7 @@ export class StringSchema extends TypeSchema<"string">  {
   public readonly pattern?: string;
   public readonly minLength?: number;
   public readonly maxLength?: number;
-  enum?: string[];
+  enum?: Array<string>;
 
   constructor();
   constructor(schema: (model: number) => boolean);

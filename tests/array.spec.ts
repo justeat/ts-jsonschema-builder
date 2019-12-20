@@ -1,6 +1,6 @@
 
 import { testCase } from "./test-case";
-import { Model } from "./models";
+import { Model, Model2 } from "./models";
 import { Schema, ArraySchema, NumberSchema, StringSchema, BooleanSchema, AnyOf } from "../src";
 import { assertValid, assertInvalid, assert } from "./assertion";
 
@@ -302,6 +302,64 @@ describe("Array", () => {
       const schema = new Schema<Model>()
         .with(m => m.ArrayProp, new ArraySchema({
           items: new BooleanSchema()
+        }))
+        .build();
+
+      assertInvalid(schema, model);
+    });
+  });
+
+  describe("Array of objects", () => {
+    it("Should pass when all items are matching specified object schema", () => {
+
+      const model: Model = {
+        ObjArrayProp: [
+          {
+            Lvl2ObjProp: {
+              Lvl3StrProp: "abc"
+            }
+          },
+          {
+            Lvl2ObjProp: {
+              Lvl3StrProp: "def"
+            }
+          }
+        ]
+      };
+
+      const schema = new Schema<Model>()
+        .with(x => x.ObjArrayProp, new ArraySchema({
+          items: new Schema<Model2>().with(x => x.Lvl2ObjProp.Lvl3StrProp, new StringSchema({
+            minLength: 1
+          }))
+        }))
+        .build();
+
+      assertValid(schema, model);
+    });
+
+    it("Should fail when one of items is not matching specified object schema", () => {
+
+      const model: Model = {
+        ObjArrayProp: [
+          {
+            Lvl2ObjProp: {
+              Lvl3StrProp: "abcdef"
+            }
+          },
+          {
+            Lvl2ObjProp: {
+              Lvl3StrProp: "xyz"
+            }
+          }
+        ]
+      };
+
+      const schema = new Schema<Model>()
+        .with(x => x.ObjArrayProp, new ArraySchema({
+          items: new Schema<Model2>().with(x => x.Lvl2ObjProp.Lvl3StrProp, new StringSchema({
+            minLength: 5
+          }))
         }))
         .build();
 
