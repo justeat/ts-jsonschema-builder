@@ -124,12 +124,12 @@ export class Schema<T> extends TypeSchema<"object"> {
 
   /**
    * @description Specify schema for a array property
-   * @param {(model: T) => any[]} selector Array property selector
+   * @param {(model: T) => Array<any>} selector Array property selector
    * @param {IArraySchema} schema Array schema
    * @example
    * .with(m => m.ArrayProp, new ArraySchema({...}));
    */
-  with(selector: (model: T) => any[] | undefined, schema: IArraySchema): Schema<T>;
+  with(selector: (model: T) => Array<any> | undefined, schema: IArraySchema): Schema<T>;
   with(selector: any, schema: any): any {
     const expression = this.getExpression(selector);
 
@@ -138,7 +138,7 @@ export class Schema<T> extends TypeSchema<"object"> {
     if (expression.type === "Identifier") {
       this.additionalProperties = normalizedSchema.compile();
     } else {
-      const invertedExpression: { title: string, leaf?: boolean }[] = [];
+      const invertedExpression: Array<{ title: string, leaf?: boolean }> = [];
       let nextObj: MemberExpression | null = expression;
       while (nextObj) {
         invertedExpression.unshift({

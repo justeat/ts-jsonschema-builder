@@ -10,11 +10,11 @@ export function assertValid(schema: Object, model: any): void {
   assert(true, schema, model);
 }
 
-export function assertInvalid(schema: Object, model: any): Ajv.ErrorObject[] {
+export function assertInvalid(schema: Object, model: any): Array<Ajv.ErrorObject> {
   return assert(false, schema, model);
 }
 
-export function assert(expected: boolean, schema: Object, model: any): Ajv.ErrorObject[] {
+export function assert(expected: boolean, schema: Object, model: any): Array<Ajv.ErrorObject> {
 
 
   const validator = ajv.compile(schema);

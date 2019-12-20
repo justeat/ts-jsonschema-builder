@@ -2,7 +2,7 @@ export class Model {
   public StringProp?: string;
   public NumberProp?: number;
   public BooleanProp?: boolean;
-  public ArrayProp?: Array<number | string | boolean | any[]>;
+  public ArrayProp?: Array<number | string | boolean | Array<any>>;
   public ObjProp?: Model2;
   public ObjArrayProp?: Array<Model2>;
   public DictionaryProp?: {
@@ -20,8 +20,9 @@ export class NestedDictionaryPropModel {
 export class DictionaryPropModel {
   DictionaryChildStringProp?: string;
   DictionaryChildNumberProp?: number;
-  DictionaryChildArrayProp?: number[];
+  DictionaryChildArrayProp?: Array<number>;
   DictionaryChildBoolProp?: boolean;
+  DictionaryChildObjectArrayProp?: Array<Model3>;
 }
 
 export class Model2 {

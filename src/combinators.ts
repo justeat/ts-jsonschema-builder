@@ -8,9 +8,9 @@ export type Combination = string | RegExp | number | boolean | PropertySchema;
  * @see https://json-schema.org/understanding-json-schema/reference/combining.html#anyof
  */
 export class AnyOf extends PropertySchema {
-  public anyOf: PropertySchema[];
+  public anyOf: Array<PropertySchema>;
 
-  constructor(schemas: Combination[]) {
+  constructor(schemas: Array<Combination>) {
     super({ required: true });
     this.anyOf = schemas.map(s => parseSchema(s).compile());
   }
@@ -21,10 +21,10 @@ export class AnyOf extends PropertySchema {
  * @see https://json-schema.org/understanding-json-schema/reference/combining.html#oneof
  */
 export class OneOf extends PropertySchema {
-  public oneOf: PropertySchema[];
+  public oneOf: Array<PropertySchema>;
   public required: boolean = true;
 
-  constructor(schemas: Combination[]) {
+  constructor(schemas: Array<Combination>) {
     super({ required: true });
     this.oneOf = schemas.map(s => parseSchema(s).compile());
   }
@@ -35,10 +35,10 @@ export class OneOf extends PropertySchema {
  * @see https://json-schema.org/understanding-json-schema/reference/combining.html#allof
  */
 export class AllOf extends PropertySchema {
-  public allOf: PropertySchema[];
+  public allOf: Array<PropertySchema>;
   public required: boolean = true;
 
-  constructor(schemas: Combination[]) {
+  constructor(schemas: Array<Combination>) {
     super({ required: true });
     this.allOf = schemas.map(s => parseSchema(s).compile());
   }

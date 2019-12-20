@@ -7,13 +7,13 @@ export interface IBooleanSchema extends ITypeSchema<"boolean"> {
    * @description The enum keyword is used to restrict a value to a fixed set of values. It must be an array with at least one element, where each element is unique.
    * @see https://json-schema.org/understanding-json-schema/reference/generic.html#enumerated-values
    */
-  enum?: boolean[];
+  enum?: Array<boolean>;
 }
 
 export class BooleanSchema extends TypeSchema<"boolean"> {
   public readonly type = "boolean";
 
-  public enum?: boolean[];
+  public enum?: Array<boolean>;
 
   constructor();
   constructor(schema: boolean);

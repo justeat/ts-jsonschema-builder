@@ -45,7 +45,7 @@ export interface IArraySchema extends ITypeSchema<"array"> {
    *    })
    * })
    */
-  items?: any[] | TypeSchema<string | number | boolean>;
+  items?: Array<any> | TypeSchema<string | number | boolean>;
 
   /**
    * @description The additionalItems keyword controls whether it’s valid to have additional items in the array beyond what is defined in items.
@@ -60,7 +60,7 @@ export class ArraySchema extends TypeSchema<"array"> {
   public readonly minItems?: number;
   public readonly maxItems?: number;
   public readonly uniqueItems?: boolean;
-  public readonly items?: any[] | PropertySchema;
+  public readonly items?: Array<any> | PropertySchema;
   public readonly additionalItems?: boolean;
 
   constructor(schema: IArraySchema = {}) {
