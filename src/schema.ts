@@ -1,5 +1,5 @@
 import * as esprima from "esprima";
-import { MemberExpression, Identifier, ArrowFunctionExpression, ExpressionStatement, ReturnStatement } from "estree";
+import { MemberExpression, Identifier, ArrowFunctionExpression, ExpressionStatement, ReturnStatement, Literal } from "estree";
 
 import { StringSchema, INumberSchema, IBooleanSchema, IArraySchema } from "./";
 import { parseSchema } from "./schema-parser";
@@ -141,9 +141,16 @@ export class Schema<T> extends TypeSchema<"object"> {
       const invertedExpression: Array<{ title: string, leaf?: boolean }> = [];
       let nextObj: MemberExpression | null = expression;
       while (nextObj) {
-        invertedExpression.unshift({
-          title: (nextObj.property as Identifier).name
-        });
+        if (nextObj.property.type === "Identifier") {
+          invertedExpression.unshift({
+            title: (nextObj.property as Identifier).name
+          });
+        } else {
+          invertedExpression.unshift({
+            title: (nextObj.property as Literal).value.toString()
+          });
+        }
+
         nextObj = nextObj.object.type === "MemberExpression" ? nextObj.object as MemberExpression : null;
       }
       invertedExpression[invertedExpression.length - 1].leaf = true;

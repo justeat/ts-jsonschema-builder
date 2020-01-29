@@ -1,4 +1,5 @@
 export class Model {
+  public "Quote-Prop"?: string;
   public StringProp?: string;
   public NumberProp?: number;
   public BooleanProp?: boolean;
