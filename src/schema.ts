@@ -1,5 +1,5 @@
 import * as esprima from "esprima";
-import { MemberExpression, Identifier, ArrowFunctionExpression, ExpressionStatement, ReturnStatement, Literal } from 'estree';
+import { MemberExpression, Identifier, ArrowFunctionExpression, ExpressionStatement, ReturnStatement, Literal } from "estree";
 
 import { StringSchema, INumberSchema, IBooleanSchema, IArraySchema } from "./";
 import { parseSchema } from "./schema-parser";
