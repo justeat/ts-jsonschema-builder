@@ -24,6 +24,18 @@ describe("String", () => {
       assertValid(schema, model);
     });
 
+    it("Should pass when string property name is a string", () => {
+
+      const model: Model = {};
+      model["Quote Prop"] = "abc.def";
+
+      const schema = new Schema<Model>()
+        .with(m => m["Quote Prop"], new StringSchema())
+        .build();
+
+      assertValid(schema, model);
+    });
+
     it("Should fail when type doesn't match", () => {
 
       const model = {
