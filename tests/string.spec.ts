@@ -36,6 +36,21 @@ describe("String", () => {
       assertValid(schema, model);
     });
 
+    it("Should pass when string property names are mixed with non-string property names", () => {
+
+      const model: Model = {
+        StringProp: "test.me"
+      };
+      model["Quote Prop"] = "abc.def";
+
+      const schema = new Schema<Model>()
+        .with(m => m["Quote Prop"], new StringSchema())
+        .with(m => m.StringProp, new StringSchema())
+        .build();
+
+      assertValid(schema, model);
+    });
+
     it("Should fail when type doesn't match", () => {
 
       const model = {
