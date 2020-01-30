@@ -1,5 +1,3 @@
-import { describe, it } from "mocha";
-
 import { Schema, ArraySchema, StringSchema, AnyOf, NumberSchema, AllOf } from "../src";
 import { Model } from "./models";
 import { assertValid, assertInvalid } from "./assertion";

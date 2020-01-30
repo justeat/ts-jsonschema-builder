@@ -359,11 +359,12 @@ describe("Array", () => {
         .with(x => x.ObjArrayProp, new ArraySchema({
           items: new Schema<Model2>().with(x => x.Lvl2ObjProp.Lvl3StrProp, new StringSchema({
             minLength: 5
-          }))
-        }))
-        .build();
+          })),
+          minItems: 1
+        }));
 
-      assertInvalid(schema, model);
+
+      assertInvalid(schema.build(), model);
     });
   });
 });
