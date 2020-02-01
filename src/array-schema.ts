@@ -84,7 +84,7 @@ export class ArraySchema extends TypeSchema<"array"> {
         enum: [i]
       };
     });
-    if (schema.items && schema.items instanceof Schema) this.items = schema.items.compile().additionalProperties as PropertySchema;
+    if (schema.items && schema.items instanceof Schema) this.items = schema.items.compile();
     else if (schema.items && schema.items instanceof PropertySchema) this.items = schema.items.compile();
   }
 }

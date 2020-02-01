@@ -10,8 +10,9 @@ export class Schema<T> extends TypeSchema<"object"> {
   public additionalProperties: { $schema?: string, properties?: {}, additionalProperties?: {} } & ITypeSchema<"object">;
   readonly type?: "object";
 
-  constructor() {
-    super({ type: "object" });
+  constructor(schema?: ITypeSchema<"object">) {
+    schema = schema || { type: "object" };
+    super(schema);
     this.additionalProperties = { type: "object", properties: {} };
   }
 
@@ -29,6 +30,15 @@ export class Schema<T> extends TypeSchema<"object"> {
     else throw new Error("Invalid expression.");
     return memberExpr;
   }
+
+  /**
+   * @description Specify schema for a nested object
+   * @param {(model: T) => TProp} selector Dictionary property selector
+   * @param {Schema} schema Nested object schema
+   * @example
+   * .with(m => m.ObjProp, new Schema<Model2>().with(...));
+   */
+  with<TProp>(selector: (model: T) => TProp, schema: Schema<TProp>): Schema<T>;
 
   /**
    * @description Specify schema for a dictionary property
@@ -158,7 +168,7 @@ export class Schema<T> extends TypeSchema<"object"> {
       let $ref: any = this.additionalProperties, $member;
       for ($member of invertedExpression) {
         $ref.properties = $ref.properties || {};
-        if ($member.leaf) $ref.properties[$member.title] = Object.assign({}, normalizedSchema);
+        if ($member.leaf) $ref.properties[$member.title] = normalizedSchema.compile();
         else $ref.properties[$member.title] = $ref.properties[$member.title] || { title: $member.title, type: "object" };
 
         if (normalizedSchema.required) {
@@ -186,4 +196,14 @@ export class Schema<T> extends TypeSchema<"object"> {
     return JSON.stringify(this.build());
   }
 
+  public compile(): any {
+    return Object.assign({}, this.additionalProperties);
+  }
+
+}
+
+export class DictionarySchema<T> extends Schema<T> {
+  public compile() {
+    return Object.assign({}, this);
+  }
 }

@@ -1,6 +1,4 @@
-import { describe, it } from "mocha";
-
-import { Schema, StringSchema, NumberSchema, BooleanSchema } from "../src";
+import { Schema, StringSchema, NumberSchema, BooleanSchema, DictionarySchema } from "../src";
 import { Model, DictionaryPropModel } from "./models";
 import { assertValid, assertInvalid } from "./assertion";
 import { AnyOf, OneOf, AllOf, Not } from "../src/combinators";
@@ -68,8 +66,8 @@ describe("Combinators", () => {
         }
       };
 
-      const nestedSchema1 = new Schema<DictionaryPropModel>().with(x => x.DictionaryChildNumberProp, x => x < 150);
-      const nestedSchema2 = new Schema<DictionaryPropModel>().with(x => x.DictionaryChildNumberProp, x => x < 50);
+      const nestedSchema1 = new DictionarySchema<DictionaryPropModel>().with(x => x.DictionaryChildNumberProp, x => x < 150);
+      const nestedSchema2 = new DictionarySchema<DictionaryPropModel>().with(x => x.DictionaryChildNumberProp, x => x < 50);
 
       const schema = new Schema<Model>()
         .with(m => m.DictionaryProp, new AnyOf([nestedSchema1, nestedSchema2]))
@@ -88,8 +86,8 @@ describe("Combinators", () => {
         }
       };
 
-      const nestedSchema1 = new Schema<DictionaryPropModel>().with(x => x.DictionaryChildNumberProp, x => x > 150);
-      const nestedSchema2 = new Schema<DictionaryPropModel>().with(x => x.DictionaryChildNumberProp, x => x < 50);
+      const nestedSchema1 = new DictionarySchema<DictionaryPropModel>().with(x => x.DictionaryChildNumberProp, x => x > 150);
+      const nestedSchema2 = new DictionarySchema<DictionaryPropModel>().with(x => x.DictionaryChildNumberProp, x => x < 50);
 
       const schema = new Schema<Model>()
         .with(m => m.DictionaryProp, new AnyOf([nestedSchema1, nestedSchema2]))
@@ -175,8 +173,8 @@ describe("Combinators", () => {
         }
       };
 
-      const nestedSchema1 = new Schema<DictionaryPropModel>().with(x => x.DictionaryChildNumberProp, x => x < 150);
-      const nestedSchema2 = new Schema<DictionaryPropModel>().with(x => x.DictionaryChildNumberProp, x => x < 50);
+      const nestedSchema1 = new DictionarySchema<DictionaryPropModel>().with(x => x.DictionaryChildNumberProp, x => x < 150);
+      const nestedSchema2 = new DictionarySchema<DictionaryPropModel>().with(x => x.DictionaryChildNumberProp, x => x < 50);
 
       const schema = new Schema<Model>()
         .with(m => m.DictionaryProp, new OneOf([nestedSchema1, nestedSchema2]))
@@ -195,8 +193,8 @@ describe("Combinators", () => {
         }
       };
 
-      const nestedSchema1 = new Schema<DictionaryPropModel>().with(x => x.DictionaryChildNumberProp, x => x < 150);
-      const nestedSchema2 = new Schema<DictionaryPropModel>().with(x => x.DictionaryChildNumberProp, x => x > 50);
+      const nestedSchema1 = new DictionarySchema<DictionaryPropModel>().with(x => x.DictionaryChildNumberProp, x => x < 150);
+      const nestedSchema2 = new DictionarySchema<DictionaryPropModel>().with(x => x.DictionaryChildNumberProp, x => x > 50);
 
       const schema = new Schema<Model>()
         .with(m => m.DictionaryProp, new OneOf([nestedSchema1, nestedSchema2]))
@@ -215,8 +213,8 @@ describe("Combinators", () => {
         }
       };
 
-      const nestedSchema1 = new Schema<DictionaryPropModel>().with(x => x.DictionaryChildNumberProp, x => x > 150);
-      const nestedSchema2 = new Schema<DictionaryPropModel>().with(x => x.DictionaryChildNumberProp, x => x < 50);
+      const nestedSchema1 = new DictionarySchema<DictionaryPropModel>().with(x => x.DictionaryChildNumberProp, x => x > 150);
+      const nestedSchema2 = new DictionarySchema<DictionaryPropModel>().with(x => x.DictionaryChildNumberProp, x => x < 50);
 
       const schema = new Schema<Model>()
         .with(m => m.DictionaryProp, new OneOf([nestedSchema1, nestedSchema2]))
@@ -284,8 +282,8 @@ describe("Combinators", () => {
         }
       };
 
-      const nestedSchema1 = new Schema<DictionaryPropModel>().with(x => x.DictionaryChildNumberProp, x => x < 150);
-      const nestedSchema2 = new Schema<DictionaryPropModel>().with(x => x.DictionaryChildNumberProp, x => x > 50);
+      const nestedSchema1 = new DictionarySchema<DictionaryPropModel>().with(x => x.DictionaryChildNumberProp, x => x < 150);
+      const nestedSchema2 = new DictionarySchema<DictionaryPropModel>().with(x => x.DictionaryChildNumberProp, x => x > 50);
 
       const schema = new Schema<Model>()
         .with(m => m.DictionaryProp, new AllOf([nestedSchema1, nestedSchema2]))
@@ -304,8 +302,8 @@ describe("Combinators", () => {
         }
       };
 
-      const nestedSchema1 = new Schema<DictionaryPropModel>().with(x => x.DictionaryChildNumberProp, x => x < 150);
-      const nestedSchema2 = new Schema<DictionaryPropModel>().with(x => x.DictionaryChildNumberProp, x => x < 50);
+      const nestedSchema1 = new DictionarySchema<DictionaryPropModel>().with(x => x.DictionaryChildNumberProp, x => x < 150);
+      const nestedSchema2 = new DictionarySchema<DictionaryPropModel>().with(x => x.DictionaryChildNumberProp, x => x < 50);
 
       const schema = new Schema<Model>()
         .with(m => m.DictionaryProp, new AllOf([nestedSchema1, nestedSchema2]))
@@ -359,7 +357,7 @@ describe("Combinators", () => {
         }
       };
 
-      const nestedSchema = new Schema<DictionaryPropModel>().with(x => x.DictionaryChildNumberProp, x => x < 50);
+      const nestedSchema = new DictionarySchema<DictionaryPropModel>().with(x => x.DictionaryChildNumberProp, x => x < 50);
 
       const schema = new Schema<Model>()
         .with(m => m.DictionaryProp, new Not(nestedSchema))
@@ -377,7 +375,7 @@ describe("Combinators", () => {
         }
       };
 
-      const nestedSchema = new Schema<DictionaryPropModel>().with(x => x.DictionaryChildNumberProp, x => x < 50);
+      const nestedSchema = new DictionarySchema<DictionaryPropModel>().with(x => x.DictionaryChildNumberProp, x => x < 50);
 
       const schema = new Schema<Model>()
         .with(m => m.DictionaryProp, new Not(nestedSchema))

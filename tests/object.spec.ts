@@ -1,7 +1,5 @@
-import { describe, it } from "mocha";
-
-import { Schema, ArraySchema, StringSchema, AnyOf, NumberSchema, AllOf, BooleanSchema, OneOf } from "../src";
-import { Model, DictionaryPropModel, NestedDictionaryPropModel, Model3 } from "./models";
+import { Schema, ArraySchema, StringSchema, AnyOf, NumberSchema, AllOf, BooleanSchema, OneOf, DictionarySchema } from "../src";
+import { Model, DictionaryPropModel, NestedDictionaryPropModel, Model3, Model2 } from "./models";
 import { assertValid, assertInvalid } from "./assertion";
 import { expect } from "chai";
 
@@ -32,7 +30,7 @@ describe("Dictionary", () => {
 
     const schema = new Schema<Model>()
       .with(m => m.DictionaryProp,
-        new Schema<DictionaryPropModel>()
+        new DictionarySchema<DictionaryPropModel>()
           .with(x => x.DictionaryChildNumberProp, x => x < 50)
           .with(x => x.DictionaryChildStringProp, new AnyOf([
             /^[A-z]+\.[A-z]+$/, new StringSchema({ enum: ["abc"] })
@@ -76,7 +74,7 @@ describe("Dictionary", () => {
 
     const schema = new Schema<Model>()
       .with(m => m.DictionaryProp,
-        new Schema<DictionaryPropModel>()
+        new DictionarySchema<DictionaryPropModel>()
           .with(x => x.DictionaryChildStringProp, /^[A-z]+\.[A-z]+$/)
           .with(x => x.DictionaryChildNumberProp, x => x > 100)
           .with(x => x.DictionaryChildObjectArrayProp, new ArraySchema({
@@ -106,6 +104,28 @@ describe("Dictionary", () => {
     const uniqueItemsError = errors.find(err => err.keyword === "uniqueItems");
     expect(uniqueItemsError).to.not.be.null;
     expect(uniqueItemsError.dataPath).to.be.eq(".DictionaryProp['Key1'].DictionaryChildObjectArrayProp");
+
+  });
+
+  it("Should pass when nested Schema<T> applied to nested object", () => {
+
+    const model: Model = {
+      ObjProp: {
+        Lvl2ObjProp: {
+          Lvl3StrProp: "aaa.bbb"
+        }
+      }
+    };
+
+    const schemaLvl2 = new Schema<Model2>()
+      .with(x => x.Lvl2ObjProp.Lvl3StrProp, /^[A-z]+\.[A-z]+$/);
+
+
+    const schema = new Schema<Model>()
+      .with(m => m.ObjProp, schemaLvl2)
+      .build();
+
+    assertValid(schema, model);
 
   });
 
@@ -147,7 +167,7 @@ describe("Dictionary", () => {
 
     const schema = new Schema<Model>()
       .with(m => m.DictionaryProp,
-        new Schema<DictionaryPropModel>()
+        new DictionarySchema<DictionaryPropModel>()
           .with(x => x.DictionaryChildNumberProp, x => x < 50)
       )
       .build();
@@ -168,7 +188,7 @@ describe("Dictionary", () => {
 
     const schema = new Schema<Model>()
       .with(m => m.DictionaryProp,
-        new Schema<DictionaryPropModel>()
+        new DictionarySchema<DictionaryPropModel>()
           .with(x => x.DictionaryChildArrayProp, new ArraySchema({
             length: x => x < 5,
             uniqueItems: true
@@ -192,13 +212,48 @@ describe("Dictionary", () => {
 
     const schema = new Schema<Model>()
       .with(m => m.DictionaryProp,
-        new Schema<DictionaryPropModel>()
+        new DictionarySchema<DictionaryPropModel>()
           .with(x => x.DictionaryChildBoolProp, new BooleanSchema())
       )
       .build();
 
     assertInvalid(schema, model);
 
+  });
+
+  it("Should pass when nested object property Schema is optional and is missing", () => {
+
+    const model: Model = {
+    };
+
+    const nestedSchema = new DictionarySchema<DictionaryPropModel>({ required: false })
+      .with(x => x.DictionaryChildBoolProp, new BooleanSchema());
+
+    const schema = new Schema<Model>()
+      .with(m => m.DictionaryProp, nestedSchema);
+
+    assertValid(schema.build(), model);
+  });
+
+  it("Should fail when nested object property Schema is optional but property is specified and is invalid", () => {
+
+    const model: Model = {
+      DictionaryProp: {
+        "Key1": {
+          DictionaryChildStringProp: ""
+        }
+      }
+    };
+
+    const nestedSchema = new DictionarySchema<DictionaryPropModel>({ required: false })
+      .with(x => x.DictionaryChildStringProp, new StringSchema({
+        minLength: 10
+      }));
+
+    const schema = new Schema<Model>()
+      .with(m => m.DictionaryProp, nestedSchema);
+
+    assertInvalid(schema.build(), model);
   });
 
   it("Should fail when nested object property violates combinator schema", () => {
@@ -213,7 +268,7 @@ describe("Dictionary", () => {
 
     const schema = new Schema<Model>()
       .with(m => m.DictionaryProp,
-        new Schema<DictionaryPropModel>()
+        new DictionarySchema<DictionaryPropModel>()
           .with(x => x.DictionaryChildStringProp, new OneOf([
             /^[A-z]+\.[A-z]+$/, new StringSchema({ length: x => x === 7 })
           ]))
@@ -223,7 +278,6 @@ describe("Dictionary", () => {
     assertInvalid(schema, model);
 
   });
-
 
   it("Should pass when double nested dictionary object is valid", () => {
 
@@ -240,8 +294,8 @@ describe("Dictionary", () => {
 
     const schema = new Schema<Model>()
       .with(x => x.NestedDictionaryProp,
-        new Schema<NestedDictionaryPropModel>().with(x => x,
-          new Schema<DictionaryPropModel>()
+        new DictionarySchema<NestedDictionaryPropModel>().with(x => x,
+          new DictionarySchema<DictionaryPropModel>()
             .with(x => x.DictionaryChildNumberProp, x => x < 100)
         )).build();
 
@@ -267,7 +321,7 @@ describe("Dictionary", () => {
     const schema = new Schema<Model>()
       .with(x => x.NestedDictionaryProp,
         new Schema<NestedDictionaryPropModel>().with(x => x,
-          new Schema<DictionaryPropModel>()
+          new DictionarySchema<DictionaryPropModel>()
             .with(x => x.DictionaryChildNumberProp, x => x < 100)
         )).build();
 
@@ -275,4 +329,5 @@ describe("Dictionary", () => {
     assertInvalid(schema, model);
 
   });
+
 });

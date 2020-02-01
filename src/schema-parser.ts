@@ -16,6 +16,7 @@ export function parseSchema(value: any): PropertySchema {
   if (typeof value === "object" && value.constructor.name === "AllOf") return value;
   if (typeof value === "object" && value.constructor.name === "Not") return value;
   if (typeof value === "object" && value.constructor.name === "Schema") return value;
+  if (typeof value === "object" && value.constructor.name === "DictionarySchema") return value;
 
   if (value instanceof Function) return new NumberSchema(value);
 
